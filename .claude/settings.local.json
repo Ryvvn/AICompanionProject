@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:kenney.nl)",
+      "WebFetch(domain:itch.io)",
+      "WebFetch(domain:opengameart.org)",
+      "Bash(BASE=\"d:/UnityForWork/Project/Idk/Tower Survivor/Assets/Game\" mkdir -p \"$BASE/Core/Events\" \"$BASE/Core/Interfaces\" \"$BASE/Core/Data\" \"$BASE/Core/Extensions\" mkdir -p \"$BASE/Tower/Entities\" \"$BASE/Tower/Components\" \"$BASE/Tower/Systems\" \"$BASE/Tower/Synergies\" \"$BASE/Tower/Services\" mkdir -p \"$BASE/Combat/Entities\" \"$BASE/Combat/Components\" \"$BASE/Combat/Systems\" \"$BASE/Combat/AI\" \"$BASE/Combat/Spawning\" mkdir -p \"$BASE/Player/HeroController\" \"$BASE/Player/Shooting\" \"$BASE/Player/Skills\" \"$BASE/Player/Ultimate\" \"$BASE/Player/Components\" mkdir -p \"$BASE/Wave/WaveManager\" \"$BASE/Wave/WavePhase\" \"$BASE/Wave/Data\" mkdir -p \"$BASE/Economy/GoldManager\" \"$BASE/Economy/CoreHealthManager\" \"$BASE/Economy/Services\" mkdir -p \"$BASE/Augment/AugmentApplier\" \"$BASE/Augment/AugmentPool\" \"$BASE/Augment/Data\" mkdir -p \"$BASE/Meta/MetaProgression\" \"$BASE/Meta/UnlockManager\" \"$BASE/Meta/Services\" mkdir -p \"$BASE/UI/HUD\" \"$BASE/UI/Menus\" \"$BASE/UI/TowerShop\" \"$BASE/UI/AugmentPicker\" mkdir -p \"$BASE/Map/ArenaGrid\" \"$BASE/Map/Core\" \"$BASE/Map/SpawnZone\" mkdir -p \"$BASE/Game/GameRunState\" \"$BASE/Game/GameOrchestrator\" \"$BASE/Game/PhaseRunner\" \"$BASE/Game/SaveLoad\" echo \"Folders created\" find \"$BASE\" -type d)",
+      "mcp__unity-mcp__Unity_RunCommand",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:ollama.com)",
+      "Bash(python3:*)"
+    ]
+  },
+  "mcpServers": {
+    "unity-mcp": {
+      "command": "C:\\Users\\ADMIN\\.unity/relay\\relay_win.exe",
+      "args": [
+        "--mcp"
+      ]
+    }
+  }
+}

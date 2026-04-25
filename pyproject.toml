@@ -1,0 +1,52 @@
+[project]
+name = "bananalyzer"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Tan Nguyen", email = "tannd1008@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.28.1",
+    "psutil>=7.2.2",
+    "pydantic>=2.13.3",
+    "pydantic-settings>=2.14.0",
+    "pywin32>=311",
+    "rich>=15.0.0",
+    "textual>=8.2.4",
+    "typer>=0.24.2",
+]
+
+[project.scripts]
+bananalyzer = "bananalyzer:main"
+
+[build-system]
+requires = ["uv_build>=0.11.7,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "__pycache__",
+    "kokoro-tts*",
+    "whisper.cpp",
+    "piper",
+    "_bmad*",
+    ".bmad",
+    ".agent",
+    ".claude",
+    "job_tracker.py",
+    "mode_controller.py"
+]
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "ruff>=0.15.12",
+]

@@ -1,0 +1,95 @@
+# generated: 2026-04-26T00:48:26
+# last_updated: 2026-04-26
+# project: AICompanionProject
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: "{project-root}/_bmad-output/implementation-artifacts"
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-04-26T00:48:26
+last_updated: 2026-04-26T01:50:34
+project: AICompanionProject
+project_key: NOKEY
+tracking_system: file-system
+story_location: "{project-root}/_bmad-output/implementation-artifacts"
+
+development_status:
+  epic-1: in-progress
+  1-1-set-up-initial-project-from-starter-template: review
+  1-2-create-local-data-config-state-and-log-files: backlog
+  1-3-provide-cli-commands-for-local-operation: backlog
+  1-4-record-state-transitions-and-runtime-events: backlog
+  1-5-report-integration-health-and-degraded-modes: backlog
+  1-6-show-operational-status-to-ryan: backlog
+  1-7-provide-reliable-text-interaction-baseline: backlog
+  epic-1-retrospective: optional
+  epic-2: backlog
+  2-1-detect-foreground-activity-categories: backlog
+  2-2-implement-canonical-state-machine: backlog
+  2-3-configure-state-specific-prompts-and-personas: backlog
+  2-4-route-model-profiles-by-state: backlog
+  2-5-run-companion-and-fallback-modes-safely: backlog
+  2-6-tune-detection-and-routing-settings: backlog
+  epic-2-retrospective: optional
+  epic-3: backlog
+  3-1-connect-to-active-vs-code-context: backlog
+  3-2-build-bounded-coding-context: backlog
+  3-3-answer-questions-about-active-code: backlog
+  3-4-provide-rubber-duck-clarifying-questions: backlog
+  3-5-identify-likely-logic-issues: backlog
+  3-6-degrade-gracefully-without-code-context: backlog
+  epic-3-retrospective: optional
+  epic-4: backlog
+  4-1-create-editable-local-memory-store: backlog
+  4-2-save-goals-progress-mistakes-and-summaries: backlog
+  4-3-apply-privacy-filtering-before-memory-writes: backlog
+  4-4-update-session-memory-periodically: backlog
+  4-5-retrieve-relevant-memory-for-responses: backlog
+  4-6-inspect-and-edit-companion-identity: backlog
+  4-7-control-future-sharing-or-sync-defaults: backlog
+  epic-4-retrospective: optional
+  epic-5: backlog
+  5-1-collect-distraction-signals-through-screenpipe-adapter: backlog
+  5-2-classify-doomscrolling-from-multiple-signals: backlog
+  5-3-track-activity-time-by-state: backlog
+  5-4-calculate-and-persist-banana-debt: backlog
+  5-5-trigger-goal-aware-accountability-interventions: backlog
+  5-6-configure-intervention-intensity-and-sensitivity: backlog
+  5-7-enforce-motivational-tone-boundaries: backlog
+  5-8-degrade-gracefully-without-screenpipe: backlog
+  epic-5-retrospective: optional
+  epic-6: backlog
+  6-1-speak-responses-through-tts-adapter: backlog
+  6-2-capture-optional-spoken-questions-through-stt-adapter: backlog
+  6-3-keep-voice-components-cpu-side-and-configurable: backlog
+  6-4-degrade-gracefully-when-voice-input-fails: backlog
+  6-5-degrade-gracefully-when-voice-output-fails: backlog
+  epic-6-retrospective: optional

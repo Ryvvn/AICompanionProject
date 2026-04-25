@@ -1,0 +1,3 @@
+{"ts": "2026-04-24T15:39:00.516867+00:00", "type": "created", "job_id": "J0001", "title": "Implement duo runtime", "mode": "CODING", "est_minutes": null, "priority": "HIGH"}
+{"ts": "2026-04-24T15:39:00.885615+00:00", "type": "started", "job_id": "J0001"}
+{"ts": "2026-04-24T15:39:01.067798+00:00", "type": "paused", "job_id": "J0001", "reason": "mode_switch:CODING_to_DUO"}
