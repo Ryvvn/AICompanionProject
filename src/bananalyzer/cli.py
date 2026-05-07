@@ -1,4 +1,4 @@
-import imp
+import collections
 import time
 import typer 
 from bananalyzer.config import scaffold_data_foundation
@@ -6,8 +6,12 @@ from rich import print as rprint
 from rich.panel import Panel
 from bananalyzer.constants import CONFIG_DIR, STATE_DIR, LOGS_DIR, DATA_DIR
 from bananalyzer.config import Settings, ModelProfiles, Thresholds
+from bananalyzer.state_machine import get_current_state
+from bananalyzer.diagnostics import run_diagnostics, get_integration_health
+from bananalyzer.privacy import PERSISTENCE_ALLOWED_CATEGORIES
 from rich.table import Table
 from rich.console import Console
+from rich.text import Text
 import json
 
 console = Console()
@@ -23,17 +27,9 @@ def setup_data():
 
 @app.command(name="run")
 def run():
-    """Run the Bananalyzer CLI."""
-    print("Starting Bananalyzer CLI...")
-
-    # Placeholder for the main loop or functionality of the CLI
-    try:
-        while True:
-            # In a real implementation, this would be where the CLI checks for new data, updates status, etc.
-            print("Bananalyzer is running... (Press Ctrl+C to stop)")
-            time.sleep(2)
-    except KeyboardInterrupt:
-        print("\nBananalyzer CLI stopped.")
+    """Run the Bananalyzer CLI in text interaction mode."""
+    from bananalyzer.mode_controller import run_text_interaction_loop
+    run_text_interaction_loop()
 
     
 @app.command(name="status")
@@ -41,51 +37,75 @@ def status():
     """Show the current status of the Bananalyzer CLI."""
     rprint(Panel.fit("📊 Bananalyzer Status", style="bold green"))
 
-    # 1. Read the current_state.json
-    state_file = STATE_DIR / "current_state.json"
-    state_data = {}
-    if state_file.exists():
-        with open(state_file, "r") as f:
-            state = json.load(f)
+    # 1. Current State
+    current_state = get_current_state()
+    rprint(f"[bold]Current State:[/bold] {current_state.state}")
+    if current_state.last_updated:
+        rprint(f"[dim]Last updated: {current_state.last_updated}[/dim]")
 
-    current_state = state_data.get("state", "unknown")
-    rprint(f"[bold]Current State:[/bold] {current_state}")
-
-    # 2. Read model from config
+    # 2. Model/Profile
     profiles = ModelProfiles()
-    rprint(f"[bold]Active Model:[/bold] {profiles.default_model}")
+    rprint(f"\n[bold]Active Model:[/bold] {profiles.default_model}")
 
-    # 3. Read integration_health.json using a Rich Table
-    health_file = STATE_DIR / "integration_health.json"
-    health_data = {}
-    if health_file.exists():
-        with open(health_file, "r") as f:
-            health_data = json.load(f)
+    # 3. Integration Health
+    health_report = get_integration_health()
+    if health_report.integrations:
+        health_table = Table(title="Integration Health")
+        health_table.add_column("Integration", style="cyan")
+        health_table.add_column("Status", style="magenta")
+        health_table.add_column("Last Check", style="dim")
 
-    health_table = Table(title="Integration Health")
-    health_table.add_column("Integration", style="cyan")
-    health_table.add_column("Status", style="magenta")
+        for component, entry in health_report.integrations.items():
+            status_text = Text(entry.status)
+            if entry.status == "available":
+                status_text.stylize("green")
+            elif entry.status in ["unavailable", "degraded"]:
+                status_text.stylize("red")
+            health_table.add_row(
+                component,
+                status_text,
+                entry.last_check
+            )
+        console.print(health_table)
 
+        # Check for degraded mode
+        any_degraded = any(entry.degraded_mode for entry in health_report.integrations.values())
+        if any_degraded:
+            rprint("\n[yellow]⚠️ Degraded mode active: some integrations are unavailable, but text interaction still works.[/yellow]")
 
-    if health_data:
-        for service, status in health_data.items():
-            health_table.add_row(service, status["status"])
+    # 4. Recent Events
+    events_file = LOGS_DIR / "events.jsonl"
+    recent_events = []
+    if events_file.exists():
+        with open(events_file, "r", encoding="utf-8") as f:
+            recent_events = list(collections.deque(f, maxlen=5))
+
+    if recent_events:
+        rprint("\n[bold]Recent Events:[/bold]")
+        for line in recent_events:
+            try:
+                event = json.loads(line.strip())
+                rprint(f"  • [{event['severity']}] {event['message']}")
+            except Exception:
+                pass
     else:
-        health_table.add_row("No integrations found", "", "")
+        rprint("\n[bold]Recent Events:[/bold] No events yet.")
 
-    console.print(health_table)
+    # 5. Privacy
+    rprint("\n[bold]Persistence Allowed Categories:[/bold]")
+    for category in PERSISTENCE_ALLOWED_CATEGORIES:
+        rprint(f"  • {category}")
+    rprint("\n[dim]Note: Raw OCR, raw audio, large code excerpts, and unbounded history are NOT stored by default.[/dim]")
 
-    # 4. Recent events summary
-    rprint("\n[bold] Recent Events:[/bold] No events yet.")
+    # 6. Text Interaction Status
+    rprint("\n[bold]Interaction Mode:[/bold] Text Interaction (Baseline)")
     
 @app.command(name="dashboard")
 def dashboard():
     """Show the dashboard of the Bananalyzer CLI."""
-    rprint(Panel.fit("📊 Bananalyzer Dashboard", style="bold blue"))
-
-    # Placeholder for dashboard content
-    rprint("Dashboard content will be displayed here.")
-    # Logic to show dynamic content based on the current state, recent events, etc. would go here.
+    from bananalyzer.ui.dashboard import DashboardApp
+    app = DashboardApp()
+    app.run()
 
 @app.command(name="diagnose")
 def diagnose():
@@ -104,10 +124,27 @@ def diagnose():
     else:
         rprint("[red]✗ settings.yaml not found[/red]")
 
-    # Placeholder for Integrations (as per the story)
-    rprint("\n[bold yellow]Integrations:[/bold yellow]")
-    rprint("- OBS: [dim]Unavailable (Placeholder)[/dim]")
-    rprint("- Discord: [dim]Unavailable (Placeholder)[/dim]")
+    # Run Diagnostics
+    rprint("\n[bold]Running integration health checks...[/bold]")
+    health_report = run_diagnostics()
+
+    health_table = Table(title="Integration Diagnostics")
+    health_table.add_column("Integration", style="cyan")
+    health_table.add_column("Available", style="magenta")
+    health_table.add_column("Status", style="yellow")
+    health_table.add_column("Last Error", style="dim")
+
+    for component, entry in health_report.integrations.items():
+        available_text = "✓" if entry.available else "✗"
+        available_color = "green" if entry.available else "red"
+        health_table.add_row(
+            component,
+            Text(available_text, style=available_color),
+            entry.status,
+            entry.last_error or "None"
+        )
+
+    console.print(health_table)
 
 @app.command(name="config")   
 def config():
