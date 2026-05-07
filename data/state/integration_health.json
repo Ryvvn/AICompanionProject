@@ -1,1 +1,45 @@
-{}
+{
+  "integrations": {
+    "ollama": {
+      "component": "ollama",
+      "available": false,
+      "status": "unavailable",
+      "last_check": "2026-05-07T15:28:24.500444",
+      "last_error": "Ollama integration not implemented yet",
+      "degraded_mode": true
+    },
+    "screenpipe": {
+      "component": "screenpipe",
+      "available": false,
+      "status": "unavailable",
+      "last_check": "2026-05-07T15:28:24.502443",
+      "last_error": "Screenpipe integration not implemented yet",
+      "degraded_mode": true
+    },
+    "mcp": {
+      "component": "mcp",
+      "available": false,
+      "status": "unavailable",
+      "last_check": "2026-05-07T15:28:24.502443",
+      "last_error": "MCP integration not implemented yet",
+      "degraded_mode": true
+    },
+    "stt": {
+      "component": "stt",
+      "available": false,
+      "status": "unavailable",
+      "last_check": "2026-05-07T15:28:24.502443",
+      "last_error": "STT integration not implemented yet",
+      "degraded_mode": true
+    },
+    "tts": {
+      "component": "tts",
+      "available": false,
+      "status": "unavailable",
+      "last_check": "2026-05-07T15:28:24.502443",
+      "last_error": "TTS integration not implemented yet",
+      "degraded_mode": true
+    }
+  },
+  "last_updated": "2026-05-07T15:28:24.502443"
+}

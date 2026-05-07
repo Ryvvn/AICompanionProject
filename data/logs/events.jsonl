@@ -1,0 +1,7 @@
+{"timestamp":"2026-05-07T15:28:24.500444","event_type":"integration.failed","component":"ollama","severity":"warning","message":"Integration ollama is unavailable","details":{"error":"Ollama integration not implemented yet"}}
+{"timestamp":"2026-05-07T15:28:24.502443","event_type":"integration.failed","component":"screenpipe","severity":"warning","message":"Integration screenpipe is unavailable","details":{"error":"Screenpipe integration not implemented yet"}}
+{"timestamp":"2026-05-07T15:28:24.502443","event_type":"integration.failed","component":"mcp","severity":"warning","message":"Integration mcp is unavailable","details":{"error":"MCP integration not implemented yet"}}
+{"timestamp":"2026-05-07T15:28:24.502443","event_type":"integration.failed","component":"stt","severity":"warning","message":"Integration stt is unavailable","details":{"error":"STT integration not implemented yet"}}
+{"timestamp":"2026-05-07T15:28:24.502443","event_type":"integration.failed","component":"tts","severity":"warning","message":"Integration tts is unavailable","details":{"error":"TTS integration not implemented yet"}}
+{"timestamp":"2026-05-07T15:29:36.273309","event_type":"app.started","component":"mode_controller","severity":"info","message":"Text interaction loop started","details":{}}
+{"timestamp":"2026-05-07T15:29:58.131548","event_type":"app.stopped","component":"mode_controller","severity":"info","message":"Text interaction loop stopped","details":{}}

@@ -50,7 +50,7 @@ development_status:
   1-5-report-integration-health-and-degraded-modes: done
   1-6-show-operational-status-to-ryan: done
   1-7-provide-reliable-text-interaction-baseline: done
-  epic-1-retrospective: optional
+  epic-1-retrospective: done
   epic-2: backlog
   2-1-detect-foreground-activity-categories: backlog
   2-2-implement-canonical-state-machine: backlog
