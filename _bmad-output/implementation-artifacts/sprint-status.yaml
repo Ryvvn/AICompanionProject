@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-26T00:48:26
-last_updated: 2026-05-06T18:22:00+00:00
+last_updated: 2026-05-08T00:00:00+00:00
 project: AICompanionProject
 project_key: NOKEY
 tracking_system: file-system
@@ -51,21 +51,21 @@ development_status:
   1-6-show-operational-status-to-ryan: done
   1-7-provide-reliable-text-interaction-baseline: done
   epic-1-retrospective: done
-  epic-2: backlog
-  2-1-detect-foreground-activity-categories: backlog
-  2-2-implement-canonical-state-machine: backlog
-  2-3-configure-state-specific-prompts-and-personas: backlog
-  2-4-route-model-profiles-by-state: backlog
-  2-5-run-companion-and-fallback-modes-safely: backlog
-  2-6-tune-detection-and-routing-settings: backlog
-  epic-2-retrospective: optional
-  epic-3: backlog
-  3-1-connect-to-active-vs-code-context: backlog
-  3-2-build-bounded-coding-context: backlog
-  3-3-answer-questions-about-active-code: backlog
-  3-4-provide-rubber-duck-clarifying-questions: backlog
-  3-5-identify-likely-logic-issues: backlog
-  3-6-degrade-gracefully-without-code-context: backlog
+  epic-2: done
+  2-1-detect-foreground-activity-categories: done
+  2-2-implement-canonical-state-machine: done
+  2-3-configure-state-specific-prompts-and-personas: done
+  2-4-route-model-profiles-by-state: done
+  2-5-run-companion-and-fallback-modes-safely: done
+  2-6-tune-detection-and-routing-settings: done
+  epic-2-retrospective: done
+  epic-3: in-progress
+  3-1-connect-to-active-vs-code-context: ready-for-dev
+  3-2-build-bounded-coding-context: ready-for-dev
+  3-3-answer-questions-about-active-code: ready-for-dev
+  3-4-provide-rubber-duck-clarifying-questions: ready-for-dev
+  3-5-identify-likely-logic-issues: ready-for-dev
+  3-6-degrade-gracefully-without-code-context: ready-for-dev
   epic-3-retrospective: optional
   epic-4: backlog
   4-1-create-editable-local-memory-store: backlog

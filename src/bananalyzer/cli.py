@@ -4,8 +4,16 @@ import typer
 from bananalyzer.config import scaffold_data_foundation
 from rich import print as rprint
 from rich.panel import Panel
-from bananalyzer.constants import CONFIG_DIR, STATE_DIR, LOGS_DIR, DATA_DIR
-from bananalyzer.config import Settings, ModelProfiles, Thresholds
+from bananalyzer.constants import CONFIG_DIR, STATE_DIR, LOGS_DIR, DATA_DIR, AppState
+from bananalyzer.config import (
+    Settings,
+    ModelProfiles,
+    Thresholds,
+    get_config_paths,
+    load_model_profiles_safe,
+    load_settings_safe,
+    load_thresholds_safe,
+)
 from bananalyzer.state_machine import get_current_state
 from bananalyzer.diagnostics import run_diagnostics, get_integration_health
 from bananalyzer.privacy import PERSISTENCE_ALLOWED_CATEGORIES
@@ -40,8 +48,15 @@ def status():
     # 1. Current State
     current_state = get_current_state()
     rprint(f"[bold]Current State:[/bold] {current_state.state}")
-    if current_state.last_updated:
-        rprint(f"[dim]Last updated: {current_state.last_updated}[/dim]")
+    if current_state.timestamp:
+        rprint(f"[dim]Last updated: {current_state.timestamp}[/dim]")
+    if current_state.reason:
+        rprint(f"[dim]Reason: {current_state.reason}[/dim]")
+    if current_state.confidence is not None:
+        rprint(f"[dim]Confidence: {current_state.confidence}[/dim]")
+    if current_state.state == AppState.FALLBACK:
+        rprint("\n[yellow]Fallback mode active.[/yellow]")
+        rprint("[dim]Capabilities: Text interaction available. Some signals/integrations may be unavailable.[/dim]")
 
     # 2. Model/Profile
     profiles = ModelProfiles()
@@ -49,7 +64,10 @@ def status():
 
     # 3. Integration Health
     health_report = get_integration_health()
-    if health_report.integrations:
+    rprint("\n[bold]Integration Health:[/bold]")
+    if not health_report.integrations:
+        rprint("No integration health recorded yet.")
+    else:
         health_table = Table(title="Integration Health")
         health_table.add_column("Integration", style="cyan")
         health_table.add_column("Status", style="magenta")
@@ -68,7 +86,6 @@ def status():
             )
         console.print(health_table)
 
-        # Check for degraded mode
         any_degraded = any(entry.degraded_mode for entry in health_report.integrations.values())
         if any_degraded:
             rprint("\n[yellow]⚠️ Degraded mode active: some integrations are unavailable, but text interaction still works.[/yellow]")
@@ -151,14 +168,44 @@ def config():
     """Configure the Bananalyzer CLI."""
     rprint(Panel.fit("⚙ Active Configuration", style="bold magenta"))
     
-    # Instantiate the config classes (they automatically read the YAML files)
-    app_settings = Settings()
-    model_profiles = ModelProfiles()
-    thresholds = Thresholds()
+    config_paths = get_config_paths()
+    app_settings = load_settings_safe()
+    model_profiles = load_model_profiles_safe()
+    thresholds = load_thresholds_safe()
 
-    # Print the settings
-    rprint(f"[bold] 🖥 App Name [/bold] : {app_settings.app_name}")
-    rprint(f"[bold] 🤖 Default Model [/bold] : {model_profiles.default_model}")
-    rprint(f"[bold] ⏰ Thresholds [/bold] : {thresholds.doomscrolling_threshold_mins} mins")
+    paths_table = Table(title="Config Paths")
+    paths_table.add_column("Item", style="cyan")
+    paths_table.add_column("Path", style="dim")
+    for key, path in config_paths.items():
+        paths_table.add_row(key, str(path))
+    console.print(paths_table)
+
+    settings_table = Table(title="Detection & Routing Settings")
+    settings_table.add_column("Key", style="cyan")
+    settings_table.add_column("Value", style="magenta")
+    settings_table.add_row("app_name", str(app_settings.app_name))
+    settings_table.add_row("foreground_poll_interval_seconds", str(app_settings.foreground_poll_interval_seconds))
+    settings_table.add_row("idle_seconds_for_companion", str(thresholds.idle_seconds_for_companion))
+    settings_table.add_row("doomscrolling_threshold_mins", str(thresholds.doomscrolling_threshold_mins))
+    settings_table.add_row("fallback_confidence_threshold", str(thresholds.fallback_confidence_threshold))
+    settings_table.add_row("default_model", str(model_profiles.default_model))
+    settings_table.add_row("app_category_map_entries", str(len(app_settings.foreground_app_category_map)))
+    console.print(settings_table)
+
+    mappings_table = Table(title="App → Category Mappings")
+    mappings_table.add_column("Process", style="cyan")
+    mappings_table.add_column("Category", style="magenta")
+    for proc_name, category in sorted(app_settings.foreground_app_category_map.items()):
+        mappings_table.add_row(proc_name, category)
+    console.print(mappings_table)
+
+    from bananalyzer.persona import get_prompt_paths
+
+    prompts_table = Table(title="Prompt Paths (by state)")
+    prompts_table.add_column("State", style="cyan")
+    prompts_table.add_column("Path", style="dim")
+    for state, path in get_prompt_paths().items():
+        prompts_table.add_row(state, str(path))
+    console.print(prompts_table)
 
     

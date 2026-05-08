@@ -1,1 +1,3 @@
 doomscrolling_threshold_mins: 15
+idle_seconds_for_companion: 60
+fallback_confidence_threshold: 0.2

@@ -1,1 +1,8 @@
-{}
+{
+  "previous_state": "companion",
+  "state": "coding",
+  "reason": "activity_category:coding",
+  "confidence": 0.7,
+  "timestamp": "2026-05-08T10:53:11.574279",
+  "last_updated": null
+}

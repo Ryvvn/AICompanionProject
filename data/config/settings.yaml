@@ -1,1 +1,16 @@
 app_name: Bananalyzer
+foreground_poll_interval_seconds: 5
+foreground_app_category_map:
+  Code.exe: coding
+  Cursor.exe: coding
+  Unity.exe: coding
+  Trae.exe : coding
+  Steam.exe: gaming
+  PUBG.exe: gaming
+  TslGame.exe: gaming
+prompt_files:
+  coding: coding.md
+  gaming: gaming.md
+  doomscrolling: doomscroll.md
+  companion: companion.md
+  fallback: fallback.md

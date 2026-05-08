@@ -5,7 +5,14 @@ from unittest.mock import patch
 import yaml
 import pytest
 
-from bananalyzer.config import scaffold_data_foundation, Settings, ModelProfiles, Thresholds
+from bananalyzer.config import (
+    scaffold_data_foundation,
+    Settings,
+    ModelProfiles,
+    Thresholds,
+    load_settings_safe,
+    load_thresholds_safe,
+)
 import bananalyzer.constants as constants
 
 @pytest.fixture
@@ -87,11 +94,52 @@ def test_scaffold_data_foundation_creates_directories_and_files(temp_data_dir: P
 
 def test_settings_models_load_from_yaml(temp_data_dir: Path):
     scaffold_data_foundation()
-    
-    # Since Settings models use YamlConfigSettingsSource which is initialized at class-level
-    # with CONFIG_DIR, patching CONFIG_DIR won't automatically update the path used by
-    # the SettingsConfigDict yaml_file field since the classes are already defined.
-    # Therefore we recreate the classes or explicitly override them for this test,
-    # or just trust that if scaffolding worked, Pydantic load will work.
-    pass
 
+    settings_path = temp_data_dir / "config" / "settings.yaml"
+    thresholds_path = temp_data_dir / "config" / "thresholds.yaml"
+    model_profiles_path = temp_data_dir / "config" / "model_profiles.yaml"
+
+    old_settings_yaml = Settings.model_config.get("yaml_file")
+    old_thresholds_yaml = Thresholds.model_config.get("yaml_file")
+    old_model_profiles_yaml = ModelProfiles.model_config.get("yaml_file")
+
+    Settings.model_config["yaml_file"] = settings_path
+    Thresholds.model_config["yaml_file"] = thresholds_path
+    ModelProfiles.model_config["yaml_file"] = model_profiles_path
+
+    try:
+        settings = Settings()
+        thresholds = Thresholds()
+        profiles = ModelProfiles()
+        assert settings.app_name == "Bananalyzer"
+        assert settings.foreground_poll_interval_seconds == 5
+        assert thresholds.doomscrolling_threshold_mins == 15
+        assert profiles.default_model == "local-llama3"
+    finally:
+        Settings.model_config["yaml_file"] = old_settings_yaml
+        Thresholds.model_config["yaml_file"] = old_thresholds_yaml
+        ModelProfiles.model_config["yaml_file"] = old_model_profiles_yaml
+
+
+def test_safe_loaders_fall_back_on_invalid_yaml(temp_data_dir: Path):
+    settings_path = temp_data_dir / "config" / "settings.yaml"
+    thresholds_path = temp_data_dir / "config" / "thresholds.yaml"
+
+    settings_path.parent.mkdir(parents=True, exist_ok=True)
+    thresholds_path.parent.mkdir(parents=True, exist_ok=True)
+
+    settings_path.write_text("app_name: Bananalyzer\nforeground_poll_interval_seconds: 0\n", encoding="utf-8")
+    thresholds_path.write_text("doomscrolling_threshold_mins: 0\n", encoding="utf-8")
+
+    old_settings_yaml = Settings.model_config.get("yaml_file")
+    old_thresholds_yaml = Thresholds.model_config.get("yaml_file")
+    Settings.model_config["yaml_file"] = settings_path
+    Thresholds.model_config["yaml_file"] = thresholds_path
+    try:
+        settings = load_settings_safe()
+        thresholds = load_thresholds_safe()
+        assert settings.foreground_poll_interval_seconds == 5
+        assert thresholds.doomscrolling_threshold_mins == 15
+    finally:
+        Settings.model_config["yaml_file"] = old_settings_yaml
+        Thresholds.model_config["yaml_file"] = old_thresholds_yaml
