@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     """Main application settings"""
     app_name: str = "Bananalyzer"
     foreground_poll_interval_seconds: int = 5
+    memory_update_interval_seconds: int = 300
+    sync_enabled: bool = False
     mcp_endpoint_url: str = "http://127.0.0.1:8000/v1/context"
     code_context_max_lines: int = 200
     code_context_max_chars: int = 8000
@@ -47,7 +49,7 @@ class Settings(BaseSettings):
             "coding": "coding.md",
             "gaming": "gaming.md",
             "doomscrolling": "doomscroll.md",
-            "companion": "companion.md",
+            "companion": "companion.md",  
             "fallback": "fallback.md",
         }
     )
@@ -81,7 +83,7 @@ class Settings(BaseSettings):
                 continue
             normalized[str(key).strip().lower()] = str(value).strip()
         return normalized
-
+    
 
 class ModelProfile(BaseModel):
     model: str

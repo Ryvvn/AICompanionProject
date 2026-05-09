@@ -184,3 +184,18 @@ cython_debug/
 .trae/skills
 .agents/skills
 .agent
+
+# Project-specific: personal runtime data
+data/
+
+# Personal config files
+_bmad/config.user.toml
+.claude/settings.local.json
+
+# Personal job tracker log
+jobs.jsonl
+
+# Vendored third-party engines (should be installed via package manager or submodule)
+kokoro-tts-2.3.1/
+whisper.cpp/
+piper/

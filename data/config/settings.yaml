@@ -1,5 +1,7 @@
 app_name: Bananalyzer
 foreground_poll_interval_seconds: 5
+memory_update_interval_seconds: 300
+sync_enabled: false
 foreground_app_category_map:
   Code.exe: coding
   Cursor.exe: coding

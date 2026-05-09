@@ -1,6 +1,6 @@
 # Story 4.4: Update Session Memory Periodically
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 4 - Local Memory and Evolving Companion Identity
 
 ## 1. Story Foundation
@@ -61,29 +61,42 @@ So that useful progress is captured without interrupting my work.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add `memory_update_interval` configuration to `settings.yaml`
-- [ ] Task 2: Implement periodic trigger in `mode_controller.py`
-- [ ] Task 3: Implement `summarizer.py` to generate concise session summaries
-- [ ] Task 4: Implement skip logic when no meaningful changes exist
-- [ ] Task 5: Emit `memory.updated` and `memory.skipped` events
-- [ ] Task 6: Write tests mocking timer/interval and verifying event emissions
+- [x] Task 1: Add `memory_update_interval` configuration to `settings.yaml`
+- [x] Task 2: Implement periodic trigger in `mode_controller.py`
+- [x] Task 3: Implement `summarizer.py` to generate concise session summaries
+- [x] Task 4: Implement skip logic when no meaningful changes exist
+- [x] Task 5: Emit `memory.updated` and `memory.skipped` events
+- [x] Task 6: Write tests mocking timer/interval and verifying event emissions
 
 ## Dev Agent Record
 
 ### Agent Model Used
-_To be filled by dev agent_
+Claude (via BMAD dev-story workflow)
 
 ### Debug Log References
-_To be filled by dev agent_
+- `python -m pytest tests/test_summarizer.py -v` — 11/11 pass
+- `python -m pytest tests/ -v` — 102/102 pass, zero regressions
 
 ### Completion Notes List
-_To be filled by dev agent_
+- Added `memory_update_interval_seconds: int = 300` to `Settings` in config.py (default 5 minutes)
+- Added field to `data/config/settings.yaml`
+- Created `memory/summarizer.py` with `generate_session_summary()`, `should_skip_update()`, `periodic_memory_update()` and `MemoryUpdateResult` dataclass
+- `generate_session_summary` reads memory.md sections (Goals, Mistakes, Progress) and current state, produces a concise summary, appends to session_summary.md via update_session_summary
+- `should_skip_update` returns True when last summary matches current state (no meaningful change); returns False when empty or state changes
+- `periodic_memory_update` calls skip check, emits `memory.skipped` or `memory.updated` event accordingly
+- Integrated into `mode_controller.py` run_text_interaction_loop: after each response, checks elapsed time vs interval, triggers periodic update
+- Non-blocking: memory update runs between user interactions without interrupting the loop
+- 11 tests covering skip logic, summary generation, integration cycle, and content conciseness
 
 ### File List
-_To be filled by dev agent_
+- `src/bananalyzer/memory/summarizer.py`
+- `src/bananalyzer/mode_controller.py`
+- `src/bananalyzer/config.py`
+- `data/config/settings.yaml`
+- `tests/test_summarizer.py`
 
 ### Change Log
-_To be filled by dev agent_
+- **2026-05-09**: Implemented periodic session memory updates with configurable interval (default 300s), skip logic for unchanged state, event emissions (memory.updated / memory.skipped), and integration into the main interaction loop.
 
 ## 6. Story Completion Status
-**Status:** ready-for-dev
+

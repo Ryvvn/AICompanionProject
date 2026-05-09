@@ -2,6 +2,7 @@ PERSISTENCE_ALLOWED_CATEGORIES = [
     "Goals",
     "Session summaries",
     "Recurring coding mistakes",
+    "Progress",
     "Banana debt",
     "State transitions",
     "Integration health",
@@ -23,6 +24,48 @@ _LARGE_TEXT_KEYS = {
     "prompt",
     "messages",
 }
+
+
+def is_category_allowed(category: str) -> bool:
+    return category in PERSISTENCE_ALLOWED_CATEGORIES
+
+
+def is_content_safe_for_persistence(
+    content,
+    *,
+    max_length: int = DEFAULT_MAX_PERSISTED_STRING_LENGTH,
+) -> bool:
+    if content is None:
+        return False
+
+    if isinstance(content, str):
+        return len(content) <= max_length
+
+    if isinstance(content, dict):
+        for key, value in content.items():
+            key_str = str(key).lower()
+            if key_str in _LARGE_TEXT_KEYS and isinstance(value, str) and len(value) > 200:
+                return False
+        return True
+
+    return True
+
+
+def check_before_persistence(category: str, content) -> tuple[bool, str | None]:
+    if not is_category_allowed(category):
+        return False, f"Category '{category}' is not in the persistence allowlist"
+
+    if not is_content_safe_for_persistence(content):
+        if isinstance(content, str) and len(content) > DEFAULT_MAX_PERSISTED_STRING_LENGTH:
+            return False, f"Content too large for persistence ({len(content)} chars, max {DEFAULT_MAX_PERSISTED_STRING_LENGTH})"
+        if isinstance(content, dict):
+            for key, value in content.items():
+                key_str = str(key).lower()
+                if key_str in _LARGE_TEXT_KEYS and isinstance(value, str) and len(value) > 200:
+                    return False, f"Content contains large text in key '{key}' which requires summarization"
+        return False, "Content failed safety checks for persistence"
+
+    return True, None
 
 
 def sanitize_for_persistence(

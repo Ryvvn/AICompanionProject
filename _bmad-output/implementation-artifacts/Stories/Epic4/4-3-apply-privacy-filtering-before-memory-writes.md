@@ -1,6 +1,6 @@
 # Story 4.3: Apply Privacy Filtering Before Memory Writes
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 4 - Local Memory and Evolving Companion Identity
 
 ## 1. Story Foundation
@@ -62,27 +62,39 @@ So that private code, OCR, and audio-derived text are not saved carelessly.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Implement persistence allowlist check logic in `privacy.py`
-- [ ] Task 2: Integrate `privacy.py` as gatekeeper into `MemoryStore` write pipeline
-- [ ] Task 3: Implement safe logging for blocked writes (metadata only, no content leak)
-- [ ] Task 4: Write tests for blocking raw data, allowing approved content, and verifying log safety
+- [x] Task 1: Implement persistence allowlist check logic in `privacy.py`
+- [x] Task 2: Integrate `privacy.py` as gatekeeper into `MemoryStore` write pipeline
+- [x] Task 3: Implement safe logging for blocked writes (metadata only, no content leak)
+- [x] Task 4: Write tests for blocking raw data, allowing approved content, and verifying log safety
 
 ## Dev Agent Record
 
 ### Agent Model Used
-_To be filled by dev agent_
+Claude (via BMAD dev-story workflow)
 
 ### Debug Log References
-_To be filled by dev agent_
+- `python -m pytest tests/test_privacy.py -v` — 18/18 pass
+- `python -m pytest tests/test_memory_store.py -v` — 39/39 pass
+- `python -m pytest tests/ -v` — 91/91 pass, zero regressions
 
 ### Completion Notes List
-_To be filled by dev agent_
+- Added `is_category_allowed(category)` — checks against `PERSISTENCE_ALLOWED_CATEGORIES`
+- Added `is_content_safe_for_persistence(content)` — rejects oversized text (>800 chars), `None`, and dicts with large-text keys (>200 chars in `code`, `content`, `selection`, `visible`, `text`, `raw`, `prompt`, `messages`)
+- Added `check_before_persistence(category, content)` — gatekeeper that returns `(allowed: bool, reason: str | None)`; reason never contains raw content
+- Integrated privacy gate into `MemoryStore._append_to_md_section` and `update_session_summary` — each accepts a `category` parameter
+- Blocked writes emit `memory.write_blocked` event with metadata only (category name, reason string)
+- Reason messages are safe: e.g., "Content too large (1000 chars, max 800)" or "content has large text in key 'code'"
+- `write_memory()` and `write_session_summary()` remain un-gated for backward compatibility; `add_goal`, `record_mistake`, `record_progress`, `update_session_summary` are privacy-gated
+- 18 privacy unit tests + 7 integration tests verifying end-to-end blocking, allowlist matching, and content leak prevention
 
 ### File List
-_To be filled by dev agent_
+- `src/bananalyzer/privacy.py`
+- `src/bananalyzer/memory/store.py`
+- `tests/test_privacy.py`
+- `tests/test_memory_store.py`
 
 ### Change Log
-_To be filled by dev agent_
+- **2026-05-09**: Implemented privacy filtering with allowlist checks, content safety validation, and metadata-only blocked-write logging. Privacy gatekeeper integrated into MemoryStore structured write methods. 25 new tests (18 privacy + 7 integration), all pass.
 
 ## 6. Story Completion Status
-**Status:** ready-for-dev
+

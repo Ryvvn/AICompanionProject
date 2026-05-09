@@ -4,7 +4,7 @@ import typer
 from bananalyzer.config import scaffold_data_foundation
 from rich import print as rprint
 from rich.panel import Panel
-from bananalyzer.constants import CONFIG_DIR, STATE_DIR, LOGS_DIR, DATA_DIR, AppState
+from bananalyzer.constants import CONFIG_DIR, STATE_DIR, LOGS_DIR, DATA_DIR, MEMORY_DIR, PROMPTS_DIR, AppState
 from bananalyzer.config import (
     Settings,
     ModelProfiles,
@@ -118,6 +118,11 @@ def status():
 
     # 6. Text Interaction Status
     rprint("\n[bold]Interaction Mode:[/bold] Text Interaction (Baseline)")
+
+    settings = load_settings_safe()
+    rprint(f"\n[bold]Cloud Sync:[/bold] {'Enabled' if settings.sync_enabled else 'Disabled (local-only)'}")
+    if settings.sync_enabled:
+        rprint("[yellow]Warning: sync_enabled is true but cloud sync is not implemented in MVP.[/yellow]")
     
 @app.command(name="dashboard")
 def dashboard():
@@ -192,6 +197,7 @@ def config():
     settings_table.add_row("fallback_confidence_threshold", str(thresholds.fallback_confidence_threshold))
     settings_table.add_row("default_model", str(model_profiles.default_model))
     settings_table.add_row("app_category_map_entries", str(len(app_settings.foreground_app_category_map)))
+    settings_table.add_row("sync_enabled", str(app_settings.sync_enabled))
     console.print(settings_table)
 
     mappings_table = Table(title="App → Category Mappings")
@@ -209,5 +215,13 @@ def config():
     for state, path in get_prompt_paths().items():
         prompts_table.add_row(state, str(path))
     console.print(prompts_table)
+
+    memory_table = Table(title="Memory File Paths")
+    memory_table.add_column("File", style="cyan")
+    memory_table.add_column("Path", style="dim")
+    memory_table.add_row("memory.md", str(MEMORY_DIR / "memory.md"))
+    memory_table.add_row("session_summary.md", str(MEMORY_DIR / "session_summary.md"))
+    memory_table.add_row("banana_debt.json", str(MEMORY_DIR / "banana_debt.json"))
+    console.print(memory_table)
 
     

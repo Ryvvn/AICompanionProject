@@ -1,6 +1,6 @@
 # Story 4.1: Create Editable Local Memory Store
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 4 - Local Memory and Evolving Companion Identity
 
 ## 1. Story Foundation
@@ -107,4 +107,4 @@ Claude (via BMAD dev-story workflow)
 - **2026-05-09**: Completed MemoryStore implementation with editable local memory files, graceful degradation, event emission, and comprehensive test coverage (20 tests, all pass).
 
 ## 6. Story Completion Status
-**Status:** review
+

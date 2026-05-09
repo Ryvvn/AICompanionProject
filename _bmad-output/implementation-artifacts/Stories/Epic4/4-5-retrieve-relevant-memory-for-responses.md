@@ -1,6 +1,6 @@
 # Story 4.5: Retrieve Relevant Memory for Responses
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 4 - Local Memory and Evolving Companion Identity
 
 ## 1. Story Foundation
@@ -59,28 +59,36 @@ So that it remembers my goals, patterns, and prior progress.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create `src/bananalyzer/memory/retrieval.py` with memory reading logic
-- [ ] Task 2: Implement bounded truncation to prevent prompt bloat
-- [ ] Task 3: Inject retrieved memory into prompt construction in `persona.py`
-- [ ] Task 4: Implement fallback: return empty memory context on errors
-- [ ] Task 5: Write tests for truncation and missing-file fallback
+- [x] Task 1: Create `src/bananalyzer/memory/retrieval.py` with memory reading logic
+- [x] Task 2: Implement bounded truncation to prevent prompt bloat
+- [x] Task 3: Inject retrieved memory into prompt construction in `persona.py`
+- [x] Task 4: Implement fallback: return empty memory context on errors
+- [x] Task 5: Write tests for truncation and missing-file fallback
 
 ## Dev Agent Record
 
 ### Agent Model Used
-_To be filled by dev agent_
+Claude (via BMAD dev-story workflow)
 
 ### Debug Log References
-_To be filled by dev agent_
+- `python -m pytest tests/test_memory_retrieval.py -v` — 15/15 pass
+- `python -m pytest tests/ -v` — 117/117 pass, zero regressions
 
 ### Completion Notes List
-_To be filled by dev agent_
+- Created `memory/retrieval.py` with `retrieve_memory_context()`, `truncate_memory_context()`, and `get_memory_prompt_block()`
+- `retrieve_memory_context` reads Goals, Mistakes, Progress sections from memory.md and session_summary.md, combines them, truncates to max_chars (default 1000)
+- `truncate_memory_context` safely bounds text to max_chars, appending a truncation notice
+- `get_memory_prompt_block` wraps retrieved memory in a "## Memory Context" markdown block; returns "" for None store, unavailable store, or empty memory
+- Injected into `mode_controller.py`: memory_context added as `{{memory_context}}` prompt variable via `_get_memory_store()` singleton
+- All retrieval errors (missing files, IO errors, unavailable store) return empty string — never crash
+- 15 tests covering: truncation, retrieval from memory sections, session summary inclusion, empty memory handling, error fallback
 
 ### File List
-_To be filled by dev agent_
+- `src/bananalyzer/memory/retrieval.py`
+- `src/bananalyzer/mode_controller.py`
+- `tests/test_memory_retrieval.py`
 
 ### Change Log
-_To be filled by dev agent_
+- **2026-05-09**: Implemented memory retrieval with bounded truncation, prompt injection as `{{memory_context}}` variable, and graceful fallback when memory is unavailable.
 
 ## 6. Story Completion Status
-**Status:** ready-for-dev

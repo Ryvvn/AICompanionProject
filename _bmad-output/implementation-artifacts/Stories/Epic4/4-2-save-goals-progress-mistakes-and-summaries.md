@@ -1,6 +1,6 @@
 # Story 4.2: Save Goals, Progress, Mistakes, and Summaries
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 4 - Local Memory and Evolving Companion Identity
 
 ## 1. Story Foundation
@@ -92,4 +92,4 @@ Claude (via BMAD dev-story workflow)
 - **2026-05-09**: Extended MemoryStore with structured markdown section management (goals, mistakes, progress), session summary appending, and safe banana_debt.json merge updates. 12 new tests, all pass.
 
 ## 6. Story Completion Status
-**Status:** review
+

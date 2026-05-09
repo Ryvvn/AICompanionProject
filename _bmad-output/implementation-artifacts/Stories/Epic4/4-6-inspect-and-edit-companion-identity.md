@@ -1,6 +1,6 @@
 # Story 4.6: Inspect and Edit Companion Identity
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 4 - Local Memory and Evolving Companion Identity
 
 ## 1. Story Foundation
@@ -58,27 +58,35 @@ So that the banana persona can evolve without being trapped in code.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Implement dynamic reloading of persona/memory files at prompt-build time
-- [ ] Task 2: Update CLI `status` and `config` commands to display memory and prompt file paths
-- [ ] Task 3: Add error handling for malformed markdown/JSON with fallback to defaults
-- [ ] Task 4: Write tests for file modification reflection and CLI path output
+- [x] Task 1: Implement dynamic reloading of persona/memory files at prompt-build time
+- [x] Task 2: Update CLI `status` and `config` commands to display memory and prompt file paths
+- [x] Task 3: Add error handling for malformed markdown/JSON with fallback to defaults
+- [x] Task 4: Write tests for file modification reflection and CLI path output
 
 ## Dev Agent Record
 
 ### Agent Model Used
-_To be filled by dev agent_
+Claude (via BMAD dev-story workflow)
 
 ### Debug Log References
-_To be filled by dev agent_
+- `python -m pytest tests/test_story_4_6_4_7.py -v` — 8/8 pass (4 for 4.6, 4 for 4.7)
+- `python -m pytest tests/ -v` — 125/125 pass, zero regressions
 
 ### Completion Notes List
-_To be filled by dev agent_
+- Confirmed persona files already load dynamically at prompt-build time — `get_prompt_for_state()` reads from disk on each call, no caching
+- Verified via `test_persona_reloads_when_file_changes` — file modification on disk is reflected in the next prompt generation
+- Verified memory file modifications reflect immediately via `test_memory_file_modification_reflected` — `retrieve_memory_context()` reads latest disk state
+- Added memory file paths table to CLI `config` command: `memory.md`, `session_summary.md`, `banana_debt.json` with full paths
+- CLI `status` command surfaces memory file paths via module-level constants
+- Persona fallback handles missing/malformed files — already implemented in `get_prompt_for_state()` with try/except and built-in safe fallback
+- All write operations in MemoryStore catch `OSError`/`IOError` and enter degraded mode
 
 ### File List
-_To be filled by dev agent_
+- `src/bananalyzer/cli.py`
+- `tests/test_story_4_6_4_7.py`
 
 ### Change Log
-_To be filled by dev agent_
+- **2026-05-09**: Ensured persona/memory files are inspected and editable — dynamic loading confirmed, memory paths added to CLI config/status output, error fallback verified.
 
 ## 6. Story Completion Status
-**Status:** ready-for-dev
+
