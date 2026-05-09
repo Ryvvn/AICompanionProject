@@ -1,0 +1,17 @@
+[workflow]
+
+persistent_facts = [
+  "file:{project-root}/_bmad/custom/bmad-create-story-template.md",
+  "All story files MUST follow the Epic 3 gold standard format. The story template is at _bmad/custom/bmad-create-story-template.md — use it as the authoritative structure.",
+  "Story sections in order: # Title with Status/Epic metadata directly below, ## 1. Story Foundation (with **User Story:** and numbered **Acceptance Criteria:** using Given/When/Then format), ## 2. Developer Context (Technical Requirements, Architecture Compliance, Code Structure Requirements, Testing Requirements), ## 3. Previous Story Intelligence, ## 4. Latest Tech Information, ## 5. Project Context Reference (Date, Project: AICompanionProject, Communication Language: English), ## Tasks / Subtasks (checkbox lists), ## Dev Agent Record (Agent Model Used, Debug Log References, Completion Notes List, File List, Change Log), ## 6. Story Completion Status.",
+  "Acceptance Criteria MUST be numbered (1. 2. 3. 4.) not bulleted (-). Each AC uses **Given** ... **When** ... **Then** ... format. The **And** keyword extends the same scenario.",
+  "The metadata line under the H1 title MUST use bold: **Status:** value on line 2, **Epic:** X - Epic Name on line 3. Status is a bare line after the title, not inside a section.",
+  "The User Story MUST be prefixed with **User Story:** on its own line, followed by As/I want/So that on separate lines. 'So that' must be capitalized.",
+  "Section 2 is named '## 2. Developer Context' (NOT 'Developer Context & Guardrails'). Sub-sections are: ### Technical Requirements, ### Architecture Compliance, ### Code Structure Requirements, ### Testing Requirements.",
+  "Section 3 is named '## 3. Previous Story Intelligence' (NOT 'Previous Story & Git Intelligence').",
+  "The ## Tasks / Subtasks section and ## Dev Agent Record section are REQUIRED even for stories not yet implemented. For ready-for-dev stories, use placeholder text like '_To be filled by dev agent_'.",
+  "The final section is '## 6. Story Completion Status' with the story's status.",
+  "Story template variables: {{epic_num}} = epic number, {{story_num}} = story number, {{story_title}} = story title, {{status}} = ready-for-dev or done, {{epic_name}} = full epic name, {{role}} = user persona, {{action}} = what they want, {{benefit}} = why, {{date}} = current date, {{agent_model_name_version}} = agent model.",
+  "Never include HTML comments like <!-- Note: Validation is optional --> in the story file.",
+  "Concrete example of correct format: 3-1-connect-to-active-vs-code-context.md in _bmad-output/implementation-artifacts/Stories/Epic3/.",
+]

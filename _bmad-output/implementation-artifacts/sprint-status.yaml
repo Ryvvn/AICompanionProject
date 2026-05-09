@@ -68,9 +68,9 @@ development_status:
   3-6-degrade-gracefully-without-code-context: done
   epic-3-retrospective: done
   epic-4: in-progress
-  4-1-create-editable-local-memory-store: ready-for-dev
-  4-2-save-goals-progress-mistakes-and-summaries: ready-for-dev
-  4-3-apply-privacy-filtering-before-memory-writes: ready-for-dev
+  4-1-create-editable-local-memory-store: review
+  4-2-save-goals-progress-mistakes-and-summaries: review
+  4-3-apply-privacy-filtering-before-memory-writes: in-progress
   4-4-update-session-memory-periodically: ready-for-dev
   4-5-retrieve-relevant-memory-for-responses: ready-for-dev
   4-6-inspect-and-edit-companion-identity: ready-for-dev
