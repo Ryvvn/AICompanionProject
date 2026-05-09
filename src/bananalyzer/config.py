@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     """Main application settings"""
     app_name: str = "Bananalyzer"
     foreground_poll_interval_seconds: int = 5
+    mcp_endpoint_url: str = "http://127.0.0.1:8000/v1/context"
+    code_context_max_lines: int = 200
+    code_context_max_chars: int = 8000
     foreground_app_category_map: dict[str, str] = Field(
         default_factory=lambda: {
             "code.exe": "coding",

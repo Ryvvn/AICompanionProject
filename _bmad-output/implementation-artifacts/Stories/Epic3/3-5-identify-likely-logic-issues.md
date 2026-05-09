@@ -1,6 +1,6 @@
 # Story 3.5: Identify Likely Logic Issues
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 3 - Active Code Companion for Rubber-Duck Support
 
 ## 1. Story Foundation
@@ -44,5 +44,30 @@ So that I can catch mistakes faster while learning.
 - **Date:** 2026-05-08
 - **Project:** AICompanionProject
 
+## Tasks / Subtasks
+
+- [x] Task 1: Update coding prompt to emphasize logic-issue identification
+  - [x] Add/adjust behavior rules in `data/prompts/coding.md` (evidence vs speculation, prioritization)
+- [x] Task 2: Validate prompt loading still works
+  - [x] Ensure `src/bananalyzer/persona.py` can render `coding.md` with context variables
+  - [x] Ensure unit tests cover template rendering
+
+## Dev Agent Record
+
+### Debug Log References
+- `python -m pytest -q`
+
+### Completion Notes List
+- Refined coding-mode prompt instructions to identify likely logic issues, label speculation, and prioritize blocking problems.
+- Ensured prompt templating continues to work with injected context blocks.
+
+### File List
+- `data/prompts/coding.md`
+- `src/bananalyzer/persona.py`
+- `tests/test_persona.py`
+
+### Change Log
+- **2026-05-08**: Updated coding prompt to explicitly guide logic-issue identification with evidence/speculation separation.
+
 ## 4. Story Completion Status
-Ultimate context engine analysis completed - comprehensive developer guide created.
+Ready for review.

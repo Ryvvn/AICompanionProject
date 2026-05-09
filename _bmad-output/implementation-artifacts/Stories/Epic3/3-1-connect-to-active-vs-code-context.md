@@ -1,6 +1,6 @@
 # Story 3.1: Connect to Active VS Code Context
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 3 - Active Code Companion for Rubber-Duck Support
 
 ## 1. Story Foundation
@@ -62,6 +62,42 @@ From Epic 2 learnings:
 - **Date:** 2026-05-08
 - **Project:** AICompanionProject
 - **Communication Language:** English
+
+## Tasks / Subtasks
+
+- [x] Task 1: Implement MCPAdapter in `src/bananalyzer/integrations/mcp.py`
+  - [x] Implement `is_available()` and `health_check()` to check MCP connection (e.g., using `httpx` against a configured endpoint).
+  - [x] Implement a method (e.g., `get_active_context()`) to retrieve active file and code selection.
+  - [x] Ensure errors (e.g., timeout, connection refused) are caught and return a graceful degraded result.
+- [x] Task 2: Integrate MCP Health Check into Diagnostics
+  - [x] Update `src/bananalyzer/diagnostics.py` to include `MCPAdapter` in `integration_health.json` snapshot.
+  - [x] Update CLI/dashboard output to show MCP availability.
+- [x] Task 3: Add unit tests for MCPAdapter
+  - [x] Create `tests/integrations/test_mcp.py`.
+  - [x] Mock `httpx.Client` or the underlying HTTP call to simulate success and failure.
+  - [x] Validate that failures return graceful error dictionaries rather than uncaught exceptions.
+
+## Dev Agent Record
+
+### Agent Model Used
+Gemini-3.1-Pro-Preview
+
+### Debug Log References
+- `python -m pytest -q`
+
+### Completion Notes List
+- Implemented `MCPAdapter` utilizing `httpx` to ping an MCP server (e.g., VS Code extension via Kilo).
+- Validated `health_check()` correctly handles connection errors, returning a `HealthCheckResult` in degraded mode.
+- Validated `get_active_context()` fetches context or gracefully returns a recoverable error dictionary.
+- MCP is natively included in `diagnostics.py` and `cli.py` due to existing dynamic integration listing.
+- Wrote full test coverage in `test_mcp.py` leveraging `pytest-mock` and patching `httpx.Client.get`.
+
+### File List
+- `src/bananalyzer/integrations/mcp.py`
+- `tests/integrations/test_mcp.py`
+
+### Change Log
+- **2026-05-08**: Completed MCP integration adapter implementation with robust connection failure handling and health check support.
 
 ## 6. Story Completion Status
 Ultimate context engine analysis completed - comprehensive developer guide created.

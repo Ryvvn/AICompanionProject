@@ -96,3 +96,21 @@ def get_integration_health() -> IntegrationHealthReport:
             return IntegrationHealthReport(**data)
     except Exception:
         return IntegrationHealthReport()
+
+
+def upsert_integration_health(component: str, result: HealthCheckResult) -> None:
+    report = get_integration_health()
+    report.integrations[component] = IntegrationHealthEntry(
+        component=component,
+        available=result.available,
+        status=result.status,
+        last_check=result.last_check,
+        last_error=result.last_error,
+        degraded_mode=result.degraded_mode,
+    )
+    report.last_updated = datetime.now().isoformat()
+
+    health_file = STATE_DIR / "integration_health.json"
+    health_file.parent.mkdir(parents=True, exist_ok=True)
+    with open(health_file, "w", encoding="utf-8") as f:
+        json.dump(report.model_dump(), f, indent=2)

@@ -1,6 +1,6 @@
 # Story 3.4: Provide Rubber-Duck Clarifying Questions
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 3 - Active Code Companion for Rubber-Duck Support
 
 ## 1. Story Foundation
@@ -50,5 +50,31 @@ So that I reason through implementation issues instead of only receiving answers
 - **Date:** 2026-05-08
 - **Project:** AICompanionProject
 
+## Tasks / Subtasks
+
+- [x] Task 1: Update coding prompt to encourage rubber-duck clarifying questions
+  - [x] Add/adjust behavior rules in `data/prompts/coding.md` (Socratic questions + non-blocking help)
+- [x] Task 2: Ensure persona loader supports prompt templating
+  - [x] Confirm `src/bananalyzer/persona.py` loads and renders `coding.md` with variables
+- [x] Task 3: Add/extend unit tests
+  - [x] Ensure `tests/test_persona.py` covers template rendering
+
+## Dev Agent Record
+
+### Debug Log References
+- `python -m pytest -q`
+
+### Completion Notes List
+- Updated `coding.md` to emphasize targeted clarifying questions and assumption-checking behavior driven purely by prompt configuration.
+- Ensured prompt templating works so context can be injected without hardcoding rubber-duck logic in Python.
+
+### File List
+- `data/prompts/coding.md`
+- `src/bananalyzer/persona.py`
+- `tests/test_persona.py`
+
+### Change Log
+- **2026-05-08**: Updated coding prompt/persona templating to support rubber-duck clarifying questions.
+
 ## 5. Story Completion Status
-Ultimate context engine analysis completed - comprehensive developer guide created.
+Ready for review.

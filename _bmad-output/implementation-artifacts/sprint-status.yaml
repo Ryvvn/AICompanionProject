@@ -59,14 +59,14 @@ development_status:
   2-5-run-companion-and-fallback-modes-safely: done
   2-6-tune-detection-and-routing-settings: done
   epic-2-retrospective: done
-  epic-3: in-progress
-  3-1-connect-to-active-vs-code-context: ready-for-dev
-  3-2-build-bounded-coding-context: ready-for-dev
-  3-3-answer-questions-about-active-code: ready-for-dev
-  3-4-provide-rubber-duck-clarifying-questions: ready-for-dev
-  3-5-identify-likely-logic-issues: ready-for-dev
-  3-6-degrade-gracefully-without-code-context: ready-for-dev
-  epic-3-retrospective: optional
+  epic-3: done
+  3-1-connect-to-active-vs-code-context: done
+  3-2-build-bounded-coding-context: done
+  3-3-answer-questions-about-active-code: done
+  3-4-provide-rubber-duck-clarifying-questions: done
+  3-5-identify-likely-logic-issues: done
+  3-6-degrade-gracefully-without-code-context: done
+  epic-3-retrospective: done
   epic-4: backlog
   4-1-create-editable-local-memory-store: backlog
   4-2-save-goals-progress-mistakes-and-summaries: backlog

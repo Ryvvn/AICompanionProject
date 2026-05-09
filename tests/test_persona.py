@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from bananalyzer.constants import AppState
-from bananalyzer.persona import get_prompt_for_state
+from bananalyzer.persona import get_prompt_for_state, render_prompt_template
 
 
 def test_get_prompt_for_state_loads_existing_prompt(tmp_path: Path, mocker):
@@ -33,3 +33,8 @@ def test_get_prompt_for_state_uses_builtin_prompt_if_all_missing(tmp_path: Path,
     prompt = get_prompt_for_state(AppState.GAMING, prompts_dir=prompts_dir)
     assert "local-first assistant" in prompt
     emit.assert_called()
+
+
+def test_render_prompt_template_replaces_known_variables():
+    rendered = render_prompt_template("Hello {{name}} {{missing}}", {"name": "Ryan"})
+    assert rendered == "Hello Ryan "

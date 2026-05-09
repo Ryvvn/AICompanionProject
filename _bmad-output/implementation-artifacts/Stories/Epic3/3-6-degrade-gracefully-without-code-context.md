@@ -1,6 +1,6 @@
 # Story 3.6: Degrade Gracefully Without Code Context
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 3 - Active Code Companion for Rubber-Duck Support
 
 ## 1. Story Foundation
@@ -51,5 +51,37 @@ So that MCP failures do not break the whole assistant.
 - **Date:** 2026-05-08
 - **Project:** AICompanionProject
 
+## Tasks / Subtasks
+
+- [x] Task 1: Ensure MCP adapter returns structured recoverable errors
+  - [x] Update `src/bananalyzer/integrations/mcp.py` to return `ok=False` with structured `error`
+  - [x] Update `tests/integrations/test_mcp.py` accordingly
+- [x] Task 2: Degrade gracefully when context is unavailable during coding turns
+  - [x] Update `src/bananalyzer/mode_controller.py` to inject a no-context notice and continue without crashing
+  - [x] Persist MCP availability to `integration_health.json` via `src/bananalyzer/diagnostics.py`
+  - [x] Ensure recoverable failures are logged to `events.jsonl`
+- [x] Task 3: Add unit tests for degraded coding support
+  - [x] Add `tests/test_mode_controller.py` covering no-context behavior and ensuring the model router is still called
+
+## Dev Agent Record
+
+### Debug Log References
+- `python -m pytest -q`
+
+### Completion Notes List
+- Implemented structured MCP context results and ensured coding turns continue with baseline behavior when context is unavailable.
+- Added runtime integration health upsert to keep status/diagnostics in sync with MCP availability.
+- Added unit tests covering degraded coding support behavior.
+
+### File List
+- `src/bananalyzer/diagnostics.py`
+- `src/bananalyzer/integrations/mcp.py`
+- `src/bananalyzer/mode_controller.py`
+- `tests/integrations/test_mcp.py`
+- `tests/test_mode_controller.py`
+
+### Change Log
+- **2026-05-08**: Implemented graceful degradation for missing code context (structured MCP errors, runtime health updates, and tests).
+
 ## 5. Story Completion Status
-Ultimate context engine analysis completed - comprehensive developer guide created.
+Ready for review.

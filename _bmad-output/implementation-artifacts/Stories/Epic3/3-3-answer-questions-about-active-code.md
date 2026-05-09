@@ -1,6 +1,6 @@
 # Story 3.3: Answer Questions About Active Code
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 3 - Active Code Companion for Rubber-Duck Support
 
 ## 1. Story Foundation
@@ -53,5 +53,39 @@ So that I can understand implementation details and make progress faster.
 - **Date:** 2026-05-08
 - **Project:** AICompanionProject
 
+## Tasks / Subtasks
+
+- [x] Task 1: Wire coding-mode prompt building with bounded code context
+  - [x] Add template rendering and variable injection in `src/bananalyzer/persona.py`
+  - [x] Build and pass `code_context_block` into `model_router` from `mode_controller`
+- [x] Task 2: Handle model-unavailable responses gracefully
+  - [x] Update `src/bananalyzer/model_router.py` to report local generation unavailability without crashing
+  - [x] Ensure integration health can be updated during runtime (`src/bananalyzer/diagnostics.py`)
+- [x] Task 3: Add unit tests
+  - [x] Add/extend tests in `tests/test_mode_controller.py`, `tests/test_model_router.py`, and `tests/test_persona.py`
+
+## Dev Agent Record
+
+### Debug Log References
+- `python -m pytest -q`
+
+### Completion Notes List
+- Implemented prompt templating (`{{code_context_block}}`) and ensured coding-mode turns inject bounded context into the rendered prompt.
+- Implemented graceful model-unavailable behavior in the model router and ensured health reporting hooks exist.
+- Added unit tests validating prompt templating and coding-mode context injection.
+
+### File List
+- `src/bananalyzer/diagnostics.py`
+- `src/bananalyzer/model_router.py`
+- `src/bananalyzer/mode_controller.py`
+- `src/bananalyzer/persona.py`
+- `data/prompts/coding.md`
+- `tests/test_mode_controller.py`
+- `tests/test_model_router.py`
+- `tests/test_persona.py`
+
+### Change Log
+- **2026-05-08**: Implemented coding-mode prompt injection pipeline and graceful model-unavailable responses.
+
 ## 5. Story Completion Status
-Ultimate context engine analysis completed - comprehensive developer guide created.
+Ready for review.

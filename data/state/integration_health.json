@@ -4,7 +4,7 @@
       "component": "ollama",
       "available": false,
       "status": "unavailable",
-      "last_check": "2026-05-07T18:34:32.452856",
+      "last_check": "2026-05-08T20:01:23.513982",
       "last_error": "Ollama integration not implemented yet",
       "degraded_mode": true
     },
@@ -12,7 +12,7 @@
       "component": "screenpipe",
       "available": false,
       "status": "unavailable",
-      "last_check": "2026-05-07T18:34:32.452856",
+      "last_check": "2026-05-08T20:01:23.513982",
       "last_error": "Screenpipe integration not implemented yet",
       "degraded_mode": true
     },
@@ -20,15 +20,15 @@
       "component": "mcp",
       "available": false,
       "status": "unavailable",
-      "last_check": "2026-05-07T18:34:32.459994",
-      "last_error": "MCP integration not implemented yet",
+      "last_check": "2026-05-08T20:01:25.519268",
+      "last_error": "Connection error: timed out",
       "degraded_mode": true
     },
     "stt": {
       "component": "stt",
       "available": false,
       "status": "unavailable",
-      "last_check": "2026-05-07T18:34:32.465520",
+      "last_check": "2026-05-08T20:01:25.519268",
       "last_error": "STT integration not implemented yet",
       "degraded_mode": true
     },
@@ -36,10 +36,10 @@
       "component": "tts",
       "available": false,
       "status": "unavailable",
-      "last_check": "2026-05-07T18:34:32.471978",
+      "last_check": "2026-05-08T20:01:25.519773",
       "last_error": "TTS integration not implemented yet",
       "degraded_mode": true
     }
   },
-  "last_updated": "2026-05-07T18:34:32.478500"
+  "last_updated": "2026-05-08T20:01:25.519773"
 }

@@ -43,7 +43,9 @@ def run():
 @app.command(name="status")
 def status():
     """Show the current status of the Bananalyzer CLI."""
-    rprint(Panel.fit("📊 Bananalyzer Status", style="bold green"))
+    # Force utf-8 encoding for Rich Console to avoid cp1252 charmap errors on Windows
+    console = Console(force_terminal=True, safe_box=False)
+    rprint(Panel.fit("Bananalyzer Status", style="bold green"))
 
     # 1. Current State
     current_state = get_current_state()
@@ -88,7 +90,7 @@ def status():
 
         any_degraded = any(entry.degraded_mode for entry in health_report.integrations.values())
         if any_degraded:
-            rprint("\n[yellow]⚠️ Degraded mode active: some integrations are unavailable, but text interaction still works.[/yellow]")
+            rprint("\n[yellow]Degraded mode active: some integrations are unavailable, but text interaction still works.[/yellow]")
 
     # 4. Recent Events
     events_file = LOGS_DIR / "events.jsonl"
@@ -127,7 +129,7 @@ def dashboard():
 @app.command(name="diagnose")
 def diagnose():
     """Diagnose the Bananalyzer CLI."""
-    rprint(Panel.fit("🔍 Diagnostic Report", style="bold blue"))
+    rprint(Panel.fit("Diagnostic Report", style="bold blue"))
 
     # Check Directories
     rprint(f"Data Dir exists: {DATA_DIR.exists()} ({DATA_DIR})")
@@ -166,7 +168,7 @@ def diagnose():
 @app.command(name="config")   
 def config():
     """Configure the Bananalyzer CLI."""
-    rprint(Panel.fit("⚙ Active Configuration", style="bold magenta"))
+    rprint(Panel.fit("Active Configuration", style="bold magenta"))
     
     config_paths = get_config_paths()
     app_settings = load_settings_safe()

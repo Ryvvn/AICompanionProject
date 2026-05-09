@@ -1,6 +1,6 @@
 # Story 3.2: Build Bounded Coding Context
 
-**Status:** ready-for-dev
+**Status:** done
 **Epic:** 3 - Active Code Companion for Rubber-Duck Support
 
 ## 1. Story Foundation
@@ -56,5 +56,37 @@ So that coding help stays useful without bloating prompts or storing too much co
 - **Date:** 2026-05-08
 - **Project:** AICompanionProject
 
+## Tasks / Subtasks
+
+- [x] Task 1: Build bounded code context utilities
+  - [x] Implement bounded excerpt logic in `src/bananalyzer/context/code_context.py`
+  - [x] Implement context shaping/selection logic in `src/bananalyzer/context/context_builder.py`
+- [x] Task 2: Enforce privacy filtering for persisted payloads
+  - [x] Add sanitization helpers in `src/bananalyzer/privacy.py`
+  - [x] Apply sanitization before writing `events.jsonl` in `src/bananalyzer/events.py`
+- [x] Task 3: Add unit tests for context bounding
+  - [x] Add `tests/context/test_context_builder.py` covering selection preference and truncation
+
+## Dev Agent Record
+
+### Debug Log References
+- `python -m pytest -q`
+
+### Completion Notes List
+- Implemented bounded code excerpt shaping for MCP payloads (selection/visible/content priority) with configurable limits.
+- Added persistence sanitization to prevent large code excerpts from being written to event logs by default.
+- Added unit tests validating bounded context behavior and safe no-context results.
+
+### File List
+- `src/bananalyzer/config.py`
+- `src/bananalyzer/context/code_context.py`
+- `src/bananalyzer/context/context_builder.py`
+- `src/bananalyzer/events.py`
+- `src/bananalyzer/privacy.py`
+- `tests/context/test_context_builder.py`
+
+### Change Log
+- **2026-05-08**: Implemented bounded coding context builder and privacy-safe persistence filtering.
+
 ## 6. Story Completion Status
-Ultimate context engine analysis completed - comprehensive developer guide created.
+Ready for review.

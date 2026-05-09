@@ -1,5 +1,5 @@
 from bananalyzer.config import ModelProfile
-from bananalyzer.model_router import select_model_profile
+from bananalyzer.model_router import build_system_prompt, select_model_profile
 
 
 class _FakeProfiles:
@@ -36,3 +36,10 @@ def test_select_model_profile_falls_back_when_missing(mocker):
     assert selected.resolved_from_state == "fallback"
     assert selected.degraded is True
     emit.assert_called()
+
+
+def test_build_system_prompt_passes_variables_to_persona(mocker):
+    get_prompt = mocker.patch("bananalyzer.model_router.get_rendered_prompt_for_state", return_value="PROMPT")
+    prompt = build_system_prompt("coding", variables={"code_context_block": "X"})
+    assert prompt == "PROMPT"
+    get_prompt.assert_called_once_with("coding", variables={"code_context_block": "X"})

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Mapping
+import re
 
 from bananalyzer.constants import PROMPTS_DIR, AppState
 from bananalyzer.events import emit_event
@@ -66,6 +67,23 @@ def get_prompt_for_state(state: str, *, prompts_dir: Path | None = None) -> str:
         "You are Bananalyzer, a local-first assistant.\n\n"
         "Keep responses safe, concise, and helpful. If context is missing, ask clarifying questions.\n"
     )
+
+
+_TEMPLATE_PATTERN = re.compile(r"\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}")
+
+
+def render_prompt_template(prompt: str, variables: Mapping[str, str] | None = None) -> str:
+    resolved_variables = dict(variables or {})
+
+    def _replace(match: re.Match[str]) -> str:
+        key = match.group(1)
+        return str(resolved_variables.get(key, ""))
+
+    return _TEMPLATE_PATTERN.sub(_replace, prompt)
+
+
+def get_rendered_prompt_for_state(state: str, *, variables: Mapping[str, str] | None = None, prompts_dir: Path | None = None) -> str:
+    return render_prompt_template(get_prompt_for_state(state, prompts_dir=prompts_dir), variables)
 
 
 def get_prompt_paths(*, prompts_dir: Path | None = None) -> Mapping[str, Path]:

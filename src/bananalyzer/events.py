@@ -5,6 +5,7 @@ from typing import Any, Dict, Literal
 from pydantic import BaseModel, Field
 
 from bananalyzer.constants import LOGS_DIR
+from bananalyzer.privacy import sanitize_for_persistence
 
 Severity = Literal["debug", "info", "warning", "error", "critical"]
 
@@ -27,6 +28,8 @@ def emit_event(
 ) -> None:
     if details is None:
         details = {}
+    else:
+        details = sanitize_for_persistence(details)
 
     event = Event(
         timestamp=datetime.now().isoformat(),

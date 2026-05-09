@@ -6,6 +6,8 @@ from typing import Any
 from bananalyzer.config import ModelProfile, load_model_profiles_safe
 from bananalyzer.constants import AppState
 from bananalyzer.events import emit_event
+from bananalyzer.integrations import OllamaAdapter
+from bananalyzer.persona import get_rendered_prompt_for_state
 from bananalyzer.state_machine import get_current_state
 
 
@@ -70,16 +72,41 @@ def select_model_profile(state: str, model_profiles: Any) -> SelectedModelProfil
     )
 
 
-def generate_response(user_input: str) -> str:
+def build_system_prompt(state: str, *, variables: dict[str, str] | None = None) -> str:
+    return get_rendered_prompt_for_state(state, variables=variables)
+
+
+def generate_response(
+    user_input: str,
+    *,
+    state_override: str | None = None,
+    prompt_variables: dict[str, str] | None = None,
+) -> str:
     try:
-        state = get_current_state().state
+        state = state_override or get_current_state().state
     except Exception:
         state = AppState.FALLBACK
 
+    system_prompt = build_system_prompt(state, variables=prompt_variables)
+
     profiles = load_model_profiles_safe()
     selected = select_model_profile(state, profiles)
+
+    ollama = OllamaAdapter()
+    if not ollama.is_available():
+        emit_event(
+            event_type="model.unavailable",
+            component="model_router",
+            severity="warning",
+            message="Local model generation unavailable",
+            details={"state": state, "model": selected.model, "resolved_from_state": selected.resolved_from_state},
+        )
+        return (
+            "Local generation is unavailable right now. "
+            "Run `bananalyzer diagnose` to see integration health and errors."
+        )
+
     return (
-        f"Thanks for your input: '{user_input}'. "
-        "I'm Bananalyzer, your AI companion! "
-        f"(Placeholder response - routed to profile '{selected.model}' for state '{selected.state}'.)"
+        f"(Placeholder response) State='{state}', model='{selected.model}'. "
+        f"System prompt loaded ({len(system_prompt)} chars). User said: {user_input!r}"
     )
