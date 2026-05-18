@@ -108,3 +108,40 @@ def build_bounded_coding_context(
         "notice": "",
         "error": None,
     }
+
+
+def build_codebase_search_block(
+    search_results: list[dict[str, Any]] | None = None,
+    file_tree: list[str] | None = None,
+    related_files: list[dict[str, Any]] | None = None,
+) -> str:
+    parts: list[str] = []
+
+    if file_tree:
+        tree_preview = file_tree[:50]
+        parts.append("## Project Structure (first 50 files)")
+        parts.append("```")
+        parts.extend(tree_preview)
+        if len(file_tree) > 50:
+            parts.append(f"... and {len(file_tree) - 50} more files")
+        parts.append("```")
+
+    if search_results and len(search_results) > 0:
+        parts.append("## Codebase Search Results")
+        parts.append("The following matches were found across the project:")
+        parts.append("")
+        for r in search_results[:15]:
+            parts.append(f"- `{r['file']}:{r['line']}` — {r['snippet']}")
+
+    if related_files:
+        parts.append("## Related Files (imports/references)")
+        for rf in related_files[:5]:
+            content = rf.get("content", "")
+            lines = content.splitlines()[:30]
+            preview = "\n".join(lines)
+            parts.append(f"### {rf.get('file', 'unknown')}")
+            parts.append("```")
+            parts.append(preview[:1500])
+            parts.append("```")
+
+    return "\n".join(parts)

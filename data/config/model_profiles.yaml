@@ -1,22 +1,22 @@
-default_model: local-llama3
+default_model: gemma4:e2b
 profiles:
   coding:
-    model: local-llama3
-    temperature: 0.2
-    context_limit: 8192
+    model: gemma4:e2b
+    temperature: 0.1
+    context_limit: 131072
   gaming:
-    model: local-llama3
+    model: gemma4:e2b
     temperature: 0.6
     context_limit: 2048
   doomscrolling:
-    model: local-llama3
+    model: gemma4:e2b
     temperature: 0.4
     context_limit: 1024
   companion:
-    model: local-llama3
+    model: gemma4:e2b
     temperature: 0.7
     context_limit: 2048
   fallback:
-    model: local-llama3
+    model: gemma4:e2b
     temperature: 0.3
     context_limit: 2048

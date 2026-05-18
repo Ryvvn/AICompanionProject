@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 import pytest
@@ -6,7 +5,6 @@ import yaml
 
 from bananalyzer.config import (
     Settings,
-    scaffold_data_foundation,
     load_settings_safe,
 )
 

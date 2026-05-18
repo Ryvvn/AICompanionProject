@@ -77,3 +77,54 @@ def test_set_state_rejects_invalid_state_and_keeps_safe_state(temp_state_and_log
 
     events = _read_events(logs_dir)
     assert events[-1]["event_type"] == "state.invalid"
+
+
+def test_evaluate_doomscroll_from_signals_triggers_doomscroll(mocker, temp_state_and_logs_dirs):
+    from bananalyzer.state_machine import evaluate_doomscroll_from_signals
+
+    mock_result = mocker.Mock()
+    mock_result.is_doomscroll = True
+    mock_result.confidence = 0.85
+    mock_result.reasons = ["browser_foreground", "duration_threshold_exceeded"]
+    mock_result.degraded_mode = False
+
+    mocker.patch(
+        "bananalyzer.accountability.signals.DistractionSignals.classify_doomscroll",
+        return_value=mock_result,
+    )
+
+    result = evaluate_doomscroll_from_signals()
+    assert result is not None
+    state, reason, confidence = result
+    assert state == "doomscrolling"
+    assert confidence == 0.85
+
+
+def test_evaluate_doomscroll_from_signals_ignores_weak_signals(mocker, temp_state_and_logs_dirs):
+    from bananalyzer.state_machine import evaluate_doomscroll_from_signals
+
+    mock_result = mocker.Mock()
+    mock_result.is_doomscroll = False
+    mock_result.confidence = 0.2
+    mock_result.reasons = ["browser_foreground"]
+    mock_result.degraded_mode = True
+
+    mocker.patch(
+        "bananalyzer.accountability.signals.DistractionSignals.classify_doomscroll",
+        return_value=mock_result,
+    )
+
+    result = evaluate_doomscroll_from_signals()
+    assert result is None
+
+
+def test_evaluate_doomscroll_from_signals_handles_exception(mocker, temp_state_and_logs_dirs):
+    from bananalyzer.state_machine import evaluate_doomscroll_from_signals
+
+    mocker.patch(
+        "bananalyzer.accountability.signals.DistractionSignals.classify_doomscroll",
+        side_effect=RuntimeError("crash"),
+    )
+
+    result = evaluate_doomscroll_from_signals()
+    assert result is None

@@ -1,6 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Any
 from dataclasses import dataclass
+
+
+@dataclass
+class AdapterResult:
+    ok: bool
+    data: Any | None = None
+    error: dict | None = None
 
 
 @dataclass

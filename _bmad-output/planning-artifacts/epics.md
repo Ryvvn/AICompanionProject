@@ -1264,3 +1264,193 @@ So that TTS problems do not prevent receiving responses.
 **Given** TTS becomes available again
 **When** health checks succeed
 **Then** Bananalyzer can resume spoken output.
+
+## Epic 7: Ollama + MCP Integration — Real LLM Inference and Multi-IDE Code Context
+
+Ryan gets real LLM-powered responses through the local Ollama inference server, and Bananalyzer routes code context requests to the correct IDE's MCP server based on which IDE is in the foreground.
+
+**FRs covered:** FR6, FR7, FR35, FR36, FR37, FR38, FR39, FR40 (completes previously routed-but-not-wired requirements, adds multi-IDE MCP routing)
+
+### Story 7.1: Implement Real Ollama HTTP Client
+
+As Ryan,
+I want Bananalyzer to make real HTTP calls to my local Ollama server,
+So that the companion can generate actual AI responses instead of placeholder text.
+
+**Acceptance Criteria:**
+
+**Given** Ollama is running locally on its default port
+**When** the Ollama adapter sends a generation request
+**Then** it calls `POST http://localhost:11434/api/generate` with the selected model name, system prompt, user prompt, and generation parameters.
+
+**Given** the adapter receives a successful Ollama response
+**When** the response is parsed
+**Then** the adapter returns the generated text content.
+
+**Given** `model_profiles.yaml` defines model-specific parameters
+**When** a generation request is built
+**Then** the adapter respects the per-state `temperature`, `num_ctx` (context window), and any other configured Ollama options.
+
+**Given** the Ollama server URL or timeout is configurable
+**When** Ryan views or edits local config
+**Then** `settings.yaml` includes `ollama.base_url` (default `http://localhost:11434`) and `ollama.request_timeout_seconds` (default 120).
+
+**Given** an Ollama model is not pulled locally
+**When** the adapter receives a "model not found" error
+**Then** the health check reports the specific model as unavailable and includes actionable guidance (e.g., run `ollama pull <model>`).
+
+### Story 7.2: Wire Model Router to Real Inference
+
+As Ryan,
+I want `model_router.generate_response()` to return real LLM output,
+So that coding help, rubber-duck questions, accountability interventions, and companion conversations are actually intelligent.
+
+**Acceptance Criteria:**
+
+**Given** `model_router.generate_response()` is called with user input
+**When** the model router processes the request
+**Then** it sends the composed system prompt + user message through the Ollama adapter to generate a real response.
+
+**Given** the Ollama adapter returns a successful response
+**When** `generate_response()` completes
+**Then** the response text is returned directly (after basic sanitization like stripping trailing whitespace and removing leading assistant-prefix artifacts).
+
+**Given** `generate_response()` receives an empty or whitespace-only user input
+**When** the router processes the request
+**Then** it returns a safe fallback message without calling Ollama.
+
+**Given** the current state has been selected correctly
+**When** a response is generated
+**Then** the response uses the state-specific system prompt and model profile already selected by `select_model_profile()` and `build_system_prompt()`.
+
+**Given** Ollama returns a response that includes added prefixes or formatting artifacts
+**When** the response is returned
+**Then** common Ollama response artifacts (e.g., repeated system prompt fragments, trailing newlines) are cleaned up before display.
+
+### Story 7.3: Handle Ollama Errors and Timeouts Gracefully
+
+As Ryan,
+I want Bananalyzer to handle Ollama connection issues without crashing,
+So that one failed generation doesn't break the whole companion.
+
+**Acceptance Criteria:**
+
+**Given** Ollama is unreachable (connection refused, timeout)
+**When** a generation request is attempted
+**Then** the adapter returns a degraded result instead of raising an unhandled exception.
+
+**Given** a generation request times out
+**When** the configured timeout is exceeded
+**Then** the adapter cancels the request and reports the timeout in diagnostics.
+
+**Given** Ollama returns an HTTP error (4xx, 5xx)
+**When** the adapter handles the response
+**Then** it logs the status code and error body
+**And** emits an `integration.failed` event.
+
+**Given** the Ollama adapter encounters any error
+**When** `model_router.generate_response()` receives the degraded result
+**Then** it returns a clear user-facing message about generation unavailability
+**And** does not crash the runtime loop.
+
+**Given** Ollama becomes available again after a failure
+**When** the next generation request is made
+**Then** the health check transitions from `unavailable`/`degraded` back to `available`.
+
+### Story 7.4: Verify End-to-End Responses Per Persona State
+
+As Ryan,
+I want to confirm that each persona state produces appropriate real responses,
+So that the companion feels distinct and useful across coding, gaming, doomscrolling, companion, and fallback modes.
+
+**Acceptance Criteria:**
+
+**Given** Bananalyzer is in `coding` state with active code context
+**When** Ryan asks a coding question
+**Then** the real Ollama response uses the coding persona prompt and responds with technical, rubber-duck-style support.
+
+**Given** Bananalyzer is in `companion` state
+**When** Ryan sends a conversational message
+**Then** the real Ollama response uses the companion persona prompt with a lighter, conversational tone.
+
+**Given** Bananalyzer is in `doomscrolling` state
+**When** an accountability intervention is triggered
+**Then** the real Ollama response uses the doomscrolling persona prompt with motivational-but-sharp tone.
+
+**Given** Bananalyzer is in `gaming` state
+**When** an accountability nudge is triggered
+**Then** the real Ollama response uses the gaming persona prompt and ties the nudge back to unfinished goals from memory.
+
+**Given** Bananalyzer is in `fallback` state
+**When** Ryan sends any message
+**Then** the real Ollama response uses the fallback prompt and remains helpful and safe.
+
+**Given** any persona state produces a response
+**When** the response is returned
+**Then** it respects the motivational tone boundaries (sarcastic/direct OK, abusive/discriminatory not OK) defined in the persona prompt files.
+
+### Story 7.5: Route MCP Context by Foreground IDE
+
+As Ryan,
+I want Bananalyzer to connect to the right IDE's MCP server based on what I'm using,
+So that the banana sees my active code whether I'm in Trae, VS Code, or Visual Studio.
+
+**Acceptance Criteria:**
+
+**Given** Ryan has Trae in the foreground
+**When** Bananalyzer requests active code context
+**Then** the MCP adapter connects to the configured Trae MCP endpoint.
+
+**Given** Ryan has VS Code (`code.exe`) in the foreground
+**When** Bananalyzer requests active code context
+**Then** the MCP adapter connects to the configured VS Code MCP endpoint.
+
+**Given** Ryan has Visual Studio (`devenv.exe`) in the foreground
+**When** Bananalyzer requests active code context
+**Then** the MCP adapter connects to the configured Visual Studio MCP endpoint.
+
+**Given** Ryan has Cursor (`cursor.exe`) in the foreground
+**When** Bananalyzer requests active code context
+**Then** the MCP adapter connects to the configured Cursor MCP endpoint.
+
+**Given** no supported IDE is in the foreground or foreground info is unavailable
+**When** Bananalyzer requests active code context
+**Then** the adapter tries each configured endpoint in priority order and returns the first successful result, or reports context unavailable.
+
+**Given** IDE-to-endpoint mappings are configurable
+**When** Ryan edits local config
+**Then** `settings.yaml` includes `mcp_endpoints` mapping IDE process names (e.g., `code.exe`, `trae.exe`, `devenv.exe`, `cursor.exe`) to their MCP server URLs with sensible localhost defaults.
+
+**Given** the MCP adapter uses the foreground process name
+**When** selecting an endpoint
+**Then** it falls back to the `unknown` or `default` endpoint entry if the specific IDE process name is not configured.
+
+### Story 7.6: Verify Code Context Across IDEs
+
+As Ryan,
+I want to confirm Bananalyzer correctly reads my active code regardless of which IDE I switch to,
+So that the rubber-duck companion follows me across tools.
+
+**Acceptance Criteria:**
+
+**Given** Ryan switches from Trae to VS Code mid-session
+**When** the next coding interaction occurs
+**Then** Bananalyzer detects the foreground change and requests context from the VS Code MCP endpoint on the next query.
+
+**Given** an IDE's MCP server is not running
+**When** Bananalyzer requests context from that IDE
+**Then** the adapter reports that endpoint as unavailable
+**And** falls back to trying other configured endpoints or reports no context.
+
+**Given** Ryan switches from an IDE to a non-IDE app
+**When** Bananalyzer evaluates coding context
+**Then** context gracefully becomes unavailable without errors
+**And** the companion continues in the appropriate non-coding persona.
+
+**Given** each IDE endpoint returns context in a slightly different JSON shape
+**When** the context builder processes the response
+**Then** `context_builder.py` normalizes `file`, `path`, `language`, `lang`, `selection`, `visible`, and `content` fields into a consistent format.
+
+**Given** MCP multi-IDE routing is active
+**When** Ryan runs `bananalyzer diagnose`
+**Then** each configured MCP endpoint's health is reported individually.

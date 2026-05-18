@@ -1,14 +1,10 @@
-import time
 from pathlib import Path
-from unittest.mock import patch
 
-import pytest
 
 from bananalyzer.memory.store import MemoryStore
 from bananalyzer.memory.summarizer import (
     generate_session_summary,
     should_skip_update,
-    MemoryUpdateResult,
 )
 from bananalyzer.constants import AppState
 

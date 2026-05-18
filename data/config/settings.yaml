@@ -2,11 +2,22 @@ app_name: Bananalyzer
 foreground_poll_interval_seconds: 5
 memory_update_interval_seconds: 300
 sync_enabled: false
+screenpipe_endpoint_url: "http://127.0.0.1:3030"
+screenpipe_poll_interval_seconds: 10
+tts_enabled: true
+tts_engine: "kokoro"
+tts_voice_model_path: "D:/AICompanionProject/kokoro-tts-2.3.1/kokoro-v1.0.onnx"
+tts_voices_path: "D:/AICompanionProject/kokoro-tts-2.3.1/voices-v1.0.bin"
+tts_voice: "ashley_neuro"
+stt_enabled: true
+stt_executable_path: "D:/AICompanionProject/whisper.cpp/build/bin/Release/whisper-cli.exe"
+stt_model_path: "D:/AICompanionProject/whisper.cpp/ggml-base.en.bin"
+stt_record_duration_seconds: 5
 foreground_app_category_map:
   Code.exe: coding
   Cursor.exe: coding
   Unity.exe: coding
-  Trae.exe : coding
+  Trae.exe: coding
   Steam.exe: gaming
   PUBG.exe: gaming
   TslGame.exe: gaming

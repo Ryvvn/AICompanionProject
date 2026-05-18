@@ -76,12 +76,40 @@ def build_system_prompt(state: str, *, variables: dict[str, str] | None = None) 
     return get_rendered_prompt_for_state(state, variables=variables)
 
 
+def _sanitize_response(raw: str, system_prompt: str) -> str:
+    text = raw.strip()
+
+    if not text:
+        return ""
+
+    for prefix in ("Assistant:", "AI:", "Bananalyzer:", "<|assistant|>"):
+        if text.startswith(prefix):
+            text = text[len(prefix):].strip()
+
+    if text.endswith("</s>"):
+        text = text[:-4].strip()
+
+    if system_prompt and len(system_prompt) > 10:
+        if text.startswith(system_prompt.strip()):
+            text = text[len(system_prompt.strip()):].strip()
+        else:
+            sys_start = system_prompt[:200].strip()
+            resp_start = text[:200].strip()
+            if sys_start and resp_start and len(sys_start) > 20 and sys_start in resp_start:
+                text = text[len(sys_start):].strip()
+
+    return text.strip()
+
+
 def generate_response(
     user_input: str,
     *,
     state_override: str | None = None,
     prompt_variables: dict[str, str] | None = None,
 ) -> str:
+    if not user_input or not user_input.strip():
+        return "I'm here! What would you like to talk about?"
+
     try:
         state = state_override or get_current_state().state
     except Exception:
@@ -106,7 +134,60 @@ def generate_response(
             "Run `bananalyzer diagnose` to see integration health and errors."
         )
 
-    return (
-        f"(Placeholder response) State='{state}', model='{selected.model}'. "
-        f"System prompt loaded ({len(system_prompt)} chars). User said: {user_input!r}"
+    options: dict[str, Any] = {"temperature": selected.temperature}
+    if selected.context_limit is not None:
+        options["num_ctx"] = selected.context_limit
+
+    result = ollama.generate(
+        prompt=user_input.strip(),
+        system=system_prompt,
+        model=selected.model,
+        options=options,
     )
+
+    if not result.ok:
+        error_code = (result.error or {}).get("code", "unknown")
+        error_messages = {
+            "ollama_unreachable": "I can't reach the local Ollama server. Is it running? Run 'ollama serve' to start it.",
+            "ollama_timeout": "The model is taking too long to respond. Try a smaller model or check if Ollama is overloaded.",
+            "ollama_http_error": "The model server returned an error. Check 'bananalyzer diagnose' for details.",
+            "ollama_invalid_response": "The model returned an unexpected response. This might be a temporary issue.",
+        }
+        user_message = error_messages.get(error_code, "Generation unavailable. Run 'bananalyzer diagnose' to check integration health.")
+
+        emit_event(
+            event_type="model.generation_failed",
+            component="model_router",
+            severity="warning",
+            message=f"Generation failed with code: {error_code}",
+            details={"state": state, "model": selected.model, "error_code": error_code, "error": result.error},
+        )
+        return user_message
+
+    raw_response = result.data or ""
+    sanitized = _sanitize_response(raw_response, system_prompt)
+
+    if not sanitized:
+        emit_event(
+            event_type="model.response.empty",
+            component="model_router",
+            severity="warning",
+            message="Generated response was empty after sanitization",
+            details={"state": state, "model": selected.model},
+        )
+        return "I received your message but couldn't generate a meaningful response. Could you rephrase?"
+
+    emit_event(
+        event_type="model.response.generated",
+        component="model_router",
+        severity="info",
+        message="Generated response successfully",
+        details={
+            "state": state,
+            "model": selected.model,
+            "response_length": len(sanitized),
+            "resolved_from_state": selected.resolved_from_state,
+        },
+    )
+
+    return sanitized

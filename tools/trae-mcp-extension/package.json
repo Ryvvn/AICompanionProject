@@ -1,0 +1,32 @@
+{
+    "name": "bananalyzer-mcp-push",
+    "displayName": "Bananalyzer MCP Push",
+    "description": "Auto-pushes active file and selection to Bananalyzer's MCP server so the banana can see your code.",
+    "version": "1.0.0",
+    "publisher": "bananalyzer",
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": ["Other"],
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "main": "./extension.js",
+    "contributes": {
+        "configuration": {
+            "title": "Bananalyzer MCP Push",
+            "properties": {
+                "bananalyzer.mcpUrl": {
+                    "type": "string",
+                    "default": "http://127.0.0.1:8001/v1/context",
+                    "description": "URL of the Bananalyzer MCP server"
+                },
+                "bananalyzer.pushDebounceMs": {
+                    "type": "number",
+                    "default": 500,
+                    "description": "Debounce delay in milliseconds before pushing context after a change"
+                }
+            }
+        }
+    }
+}

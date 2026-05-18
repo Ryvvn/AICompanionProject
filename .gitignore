@@ -199,3 +199,4 @@ jobs.jsonl
 kokoro-tts-2.3.1/
 whisper.cpp/
 piper/
+screenpipe/

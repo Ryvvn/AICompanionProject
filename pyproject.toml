@@ -9,12 +9,15 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "httpx>=0.28.1",
+    "kokoro>=0.8.4",
     "psutil>=7.2.2",
     "pydantic>=2.13.3",
     "pydantic-settings>=2.14.0",
     "pyyaml>=6.0.1",
     "pywin32>=311",
     "rich>=15.0.0",
+    "sounddevice>=0.5.0",
+    "soundfile>=0.13.0",
     "textual>=8.2.4",
     "typer>=0.24.2",
 ]
@@ -49,5 +52,6 @@ exclude = [
 [dependency-groups]
 dev = [
     "pytest>=9.0.3",
+    "pytest-mock>=3.15.1",
     "ruff>=0.15.12",
 ]

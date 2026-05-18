@@ -4,42 +4,82 @@
       "component": "ollama",
       "available": false,
       "status": "unavailable",
-      "last_check": "2026-05-09T23:13:06.623036",
-      "last_error": "Ollama integration not implemented yet",
+      "last_check": "2026-05-18T21:42:05.428376",
+      "last_error": "Unexpected failure: Unexpected failure",
       "degraded_mode": true
     },
     "screenpipe": {
       "component": "screenpipe",
       "available": false,
       "status": "unavailable",
-      "last_check": "2026-05-09T23:13:06.624060",
-      "last_error": "Screenpipe integration not implemented yet",
+      "last_check": "2026-05-18T16:25:07.600465",
+      "last_error": "Connection error: [WinError 10061] No connection could be made because the target machine actively refused it",
       "degraded_mode": true
     },
     "mcp": {
       "component": "mcp",
-      "available": false,
-      "status": "unavailable",
-      "last_check": "2026-05-09T23:13:08.635083",
+      "available": true,
+      "status": "available",
+      "last_check": "2026-05-18T20:55:44.825153",
       "last_error": "Connection error: timed out",
-      "degraded_mode": true
+      "degraded_mode": false
     },
     "stt": {
       "component": "stt",
-      "available": false,
-      "status": "unavailable",
-      "last_check": "2026-05-09T23:13:08.635083",
-      "last_error": "STT integration not implemented yet",
-      "degraded_mode": true
+      "available": true,
+      "status": "available",
+      "last_check": "2026-05-18T20:39:53.717805",
+      "last_error": null,
+      "degraded_mode": false
     },
     "tts": {
       "component": "tts",
+      "available": true,
+      "status": "available",
+      "last_check": "2026-05-18T20:39:53.712246",
+      "last_error": null,
+      "degraded_mode": false
+    },
+    "mcp:trae.exe": {
+      "component": "mcp:trae.exe",
+      "available": true,
+      "status": "available",
+      "last_check": "2026-05-18T16:25:10.122726",
+      "last_error": null,
+      "degraded_mode": false
+    },
+    "mcp:code.exe": {
+      "component": "mcp:code.exe",
       "available": false,
       "status": "unavailable",
-      "last_check": "2026-05-09T23:13:08.635586",
-      "last_error": "TTS integration not implemented yet",
+      "last_check": "2026-05-18T16:25:12.244272",
+      "last_error": "Connection error: timed out",
+      "degraded_mode": true
+    },
+    "mcp:cursor.exe": {
+      "component": "mcp:cursor.exe",
+      "available": false,
+      "status": "unavailable",
+      "last_check": "2026-05-18T16:25:14.354775",
+      "last_error": "Connection error: timed out",
+      "degraded_mode": true
+    },
+    "mcp:devenv.exe": {
+      "component": "mcp:devenv.exe",
+      "available": false,
+      "status": "unavailable",
+      "last_check": "2026-05-18T16:25:16.473913",
+      "last_error": "Connection error: timed out",
+      "degraded_mode": true
+    },
+    "mcp:default": {
+      "component": "mcp:default",
+      "available": false,
+      "status": "unavailable",
+      "last_check": "2026-05-18T16:25:18.475875",
+      "last_error": "Connection error: timed out",
       "degraded_mode": true
     }
   },
-  "last_updated": "2026-05-09T23:13:08.635586"
+  "last_updated": "2026-05-18T21:42:05.435391"
 }

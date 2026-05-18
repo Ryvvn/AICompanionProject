@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import pytest
 
 from bananalyzer.memory.retrieval import (
     retrieve_memory_context,

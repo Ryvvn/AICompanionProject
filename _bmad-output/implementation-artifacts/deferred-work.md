@@ -1,5 +1,18 @@
 # Deferred Work
 
+This document tracks technical debt, incomplete scaffolding, and features intentionally deferred for post-MVP.
+
+## Epic 5 (Accountability & Distractions)
+- **Screenpipe Integration Issues:** Screenpipe polling and extraction generated issues during testing. It has been temporarily disabled (`screenpipe_enabled: False` in config) and backlogged. We are currently relying on the foreground-app detection degraded mode. Re-enable and fix before final release.
+
+## Deferred from: Post Epic-5 implementation (2026-05-11)
+
+- **Python-based OCR integration**: Screenpipe built from source requires complex native C/C++ toolchain on Windows (whisper-rs, knf-rs, ONNX Runtime, ASR crates) that repeatedly fails to compile. The ScreenpipeAdapter is already built with graceful fallback to foreground-only detection. As a lightweight alternative, investigate pure-Python screen capture + OCR via `pyautogui` + `pytesseract` or `easyocr` to get browser URL / content type signals without the heavy Rust build. This would plug into `ScreenpipeAdapter.get_recent_context()` as a local fallback when the real Screenpipe server isn't running.
+  - **Why backlogged**: Screenpipe source build is too brittle on Windows. Foreground-only doomscroll detection is fully functional. Python OCR gives 80% of the value with 5% of the build friction.
+  - **Dependencies needed**: `pytesseract` + Tesseract OCR engine, or `easyocr` (pure Python but slower)
+
+---
+
 ## Deferred from: code review of Epic 4 stories (2026-05-09)
 
 - **F2 Code duplication**: Section parsing logic duplicated between `summarizer.py:L30-L54` and `retrieval.py:L32-L53`. Both extract Goals, Mistakes, Progress sections from `memory.md` using the same pattern. Extract a shared helper.

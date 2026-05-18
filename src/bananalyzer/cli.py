@@ -1,14 +1,16 @@
 import collections
-import time
+import json
+from pathlib import Path
+
 import typer 
 from bananalyzer.config import scaffold_data_foundation
 from rich import print as rprint
 from rich.panel import Panel
-from bananalyzer.constants import CONFIG_DIR, STATE_DIR, LOGS_DIR, DATA_DIR, MEMORY_DIR, PROMPTS_DIR, AppState
+from bananalyzer.constants import CONFIG_DIR, STATE_DIR, LOGS_DIR, DATA_DIR, MEMORY_DIR, AppState
 from bananalyzer.config import (
-    Settings,
+    Settings,  # noqa: F401
     ModelProfiles,
-    Thresholds,
+    Thresholds,  # noqa: F401
     get_config_paths,
     load_model_profiles_safe,
     load_settings_safe,
@@ -17,10 +19,10 @@ from bananalyzer.config import (
 from bananalyzer.state_machine import get_current_state
 from bananalyzer.diagnostics import run_diagnostics, get_integration_health
 from bananalyzer.privacy import PERSISTENCE_ALLOWED_CATEGORIES
+from bananalyzer.accountability import StateTimeTracker, BananaDebtCalculator
 from rich.table import Table
 from rich.console import Console
 from rich.text import Text
-import json
 
 console = Console()
 
@@ -34,10 +36,63 @@ def setup_data():
 
 
 @app.command(name="run")
-def run():
+def run(
+    mcp_port: int = typer.Option(8001, help="Port for the auto-started MCP server (0 to disable)"),
+):
     """Run the Bananalyzer CLI in text interaction mode."""
     from bananalyzer.mode_controller import run_text_interaction_loop
+    from bananalyzer.trae_mcp_server import run_mcp_server_thread
+
+    if mcp_port > 0:
+        run_mcp_server_thread(port=mcp_port)
+        rprint(f"[dim]MCP server auto-started on http://127.0.0.1:{mcp_port}[/dim]")
+
     run_text_interaction_loop()
+
+
+@app.command(name="listen")
+def listen(
+    mcp_port: int = typer.Option(8001, help="Port for the auto-started MCP server (0 to disable)"),
+):
+    """Listen via microphone and transcribe speech to text, then process the response."""
+    from bananalyzer.mode_controller import process_user_message
+    from bananalyzer.integrations.stt import STTAdapter
+    from bananalyzer.trae_mcp_server import run_mcp_server_thread
+
+    if mcp_port > 0:
+        run_mcp_server_thread(port=mcp_port)
+        rprint(f"[dim]MCP server auto-started on http://127.0.0.1:{mcp_port}[/dim]")
+
+    settings = load_settings_safe()
+
+    if not getattr(settings, "stt_enabled", False):
+        rprint("[red]STT is disabled (stt_enabled: false in settings.yaml). Enable it to use voice input.[/red]")
+        rprint("[yellow]Voice input is currently unavailable. Please type your question instead.[/yellow]")
+        return
+
+    stt = STTAdapter()
+    health = stt.health_check()
+    if not health.available:
+        rprint(f"[red]STT is unavailable: {health.last_error}[/red]")
+        rprint("[yellow]Voice input is currently unavailable. Please type your question instead.[/yellow]")
+        return
+
+    rprint(f"[bold cyan]Listening... (recording for {getattr(settings, 'stt_record_duration_seconds', 5)} seconds)[/bold cyan]")
+    result = stt.listen()
+
+    if not result.ok:
+        rprint(f"[red]Speech recognition failed: {result.error.get('message', 'Unknown error') if result.error else 'Unknown'}[/red]")
+        return
+
+    transcribed = result.data
+    rprint(f"[bold green]You said:[/bold green] {transcribed}")
+
+    response = process_user_message(transcribed)
+    console = Console()
+    console.print("\n[bold magenta]Bananalyzer[/bold magenta]")
+    from rich.markdown import Markdown
+    console.print(Markdown(response))
+    console.print()
 
     
 @app.command(name="status")
@@ -88,9 +143,69 @@ def status():
             )
         console.print(health_table)
 
+    rprint("\n[bold]Voice Configuration Validation:[/bold]")
+    settings = load_settings_safe()
+    stt_exec_ok = getattr(settings, "stt_executable_path", "") and Path(getattr(settings, "stt_executable_path", "")).exists()
+    stt_model_ok = getattr(settings, "stt_model_path", "") and Path(getattr(settings, "stt_model_path", "")).exists()
+
+    if getattr(settings, "stt_enabled", False):
+        stt_exec_status = "[green]✓ found[/green]" if stt_exec_ok else f"[red]✗ not found ({settings.stt_executable_path})[/red]"
+        stt_model_status = "[green]✓ found[/green]" if stt_model_ok else f"[red]✗ not found ({settings.stt_model_path})[/red]"
+        rprint(f"  STT executable: {stt_exec_status}")
+        rprint(f"  STT model: {stt_model_status}")
+    else:
+        rprint("  STT: disabled")
+
+    if getattr(settings, "tts_enabled", False):
+        tts_engine = getattr(settings, "tts_engine", "kokoro")
+        if tts_engine == "kokoro":
+            tts_model_ok = getattr(settings, "tts_voice_model_path", "") and Path(getattr(settings, "tts_voice_model_path", "")).exists()
+            tts_voices_ok = getattr(settings, "tts_voices_path", "") and Path(getattr(settings, "tts_voices_path", "")).exists()
+            tts_model_status = "[green]✓ found[/green]" if tts_model_ok else f"[red]✗ not found ({settings.tts_voice_model_path})[/red]"
+            tts_voices_status = "[green]✓ found[/green]" if tts_voices_ok else f"[red]✗ not found ({settings.tts_voices_path})[/red]"
+            rprint(f"  TTS engine: {tts_engine}")
+            rprint(f"  TTS model (ONNX): {tts_model_status}")
+            rprint(f"  TTS voices (BIN): {tts_voices_status}")
+            rprint(f"  TTS voice: {getattr(settings, 'tts_voice', 'af_heart')}")
+        else:
+            tts_exec_ok = getattr(settings, "tts_executable_path", "") and Path(getattr(settings, "tts_executable_path", "")).exists()
+            tts_model_ok = getattr(settings, "tts_voice_model_path", "") and Path(getattr(settings, "tts_voice_model_path", "")).exists()
+            tts_exec_status = "[green]✓ found[/green]" if tts_exec_ok else f"[red]✗ not found ({settings.tts_executable_path})[/red]"
+            tts_model_status = "[green]✓ found[/green]" if tts_model_ok else f"[red]✗ not found ({settings.tts_voice_model_path})[/red]"
+            rprint(f"  TTS executable: {tts_exec_status}")
+            rprint(f"  TTS voice model: {tts_model_status}")
+    else:
+        rprint("  TTS: disabled")
+
         any_degraded = any(entry.degraded_mode for entry in health_report.integrations.values())
         if any_degraded:
             rprint("\n[yellow]Degraded mode active: some integrations are unavailable, but text interaction still works.[/yellow]")
+
+    # 3.5 Activity Time by State
+    tracker = StateTimeTracker()
+    time_totals = tracker.get_totals_display()
+    rprint("\n[bold]Activity Time (Session):[/bold]")
+    time_table = Table(title="Time by State")
+    time_table.add_column("State", style="cyan")
+    time_table.add_column("Duration", style="magenta")
+    for state, duration in time_totals.items():
+        time_table.add_row(state, duration)
+    console.print(time_table)
+
+    # 3.6 Banana Debt
+    debt_calc = BananaDebtCalculator()
+    debt_data = debt_calc.get_current_debt()
+    if debt_data:
+        rprint("\n[bold]Banana Debt:[/bold]")
+        current = debt_data.get("current_debt", 0)
+        rprint(f"  Current: [{'red' if current > 10 else 'yellow' if current > 5 else 'green'}]{current:.1f}[/{'red' if current > 10 else 'yellow' if current > 5 else 'green'}]")
+        breakdown = debt_data.get("breakdown", {})
+        if breakdown:
+            rprint(f"  Coding: {breakdown.get('coding_minutes', 0):.1f}m | Gaming: {breakdown.get('gaming_minutes', 0):.1f}m | Doomscrolling: {breakdown.get('doomscrolling_minutes', 0):.1f}m")
+        if debt_data.get("last_updated"):
+            rprint(f"  [dim]Last updated: {debt_data['last_updated']}[/dim]")
+    else:
+        rprint("\n[bold]Banana Debt:[/bold] No data yet.")
 
     # 4. Recent Events
     events_file = LOGS_DIR / "events.jsonl"
@@ -200,6 +315,22 @@ def config():
     settings_table.add_row("sync_enabled", str(app_settings.sync_enabled))
     console.print(settings_table)
 
+    voice_table = Table(title="Voice Settings")
+    voice_table.add_column("Key", style="cyan")
+    voice_table.add_column("Value", style="magenta")
+    voice_table.add_row("STT enabled", str(app_settings.stt_enabled))
+    voice_table.add_row("STT executable path", app_settings.stt_executable_path or "(not set)")
+    voice_table.add_row("STT model path", app_settings.stt_model_path or "(not set)")
+    voice_table.add_row("STT record duration (s)", str(app_settings.stt_record_duration_seconds))
+    voice_table.add_row("TTS enabled", str(app_settings.tts_enabled))
+    voice_table.add_row("TTS engine", app_settings.tts_engine)
+    voice_table.add_row("TTS executable path", app_settings.tts_executable_path or "(not set)")
+    voice_table.add_row("TTS voice", getattr(app_settings, "tts_voice", "af_heart"))
+    voice_table.add_row("TTS voice model path", app_settings.tts_voice_model_path or "(not set)")
+    voice_table.add_row("TTS voices path", app_settings.tts_voices_path or "(not set)")
+    voice_table.add_row("Voice CPU-side", "Yes (Piper/Kokoro + Whisper.cpp)")
+    console.print(voice_table)
+
     mappings_table = Table(title="App → Category Mappings")
     mappings_table.add_column("Process", style="cyan")
     mappings_table.add_column("Category", style="magenta")
@@ -224,4 +355,53 @@ def config():
     memory_table.add_row("banana_debt.json", str(MEMORY_DIR / "banana_debt.json"))
     console.print(memory_table)
 
-    
+
+@app.command(name="mcp-serve")
+def mcp_serve(
+    port: int = typer.Option(8001, help="Port to run the MCP server on"),
+    host: str = typer.Option("127.0.0.1", help="Host to bind to"),
+):
+    """Start a local MCP server for Trae/VS Code context."""
+    from bananalyzer.trae_mcp_server import run_mcp_server
+
+    run_mcp_server(host=host, port=port)
+
+
+@app.command(name="mcp-push")
+def mcp_push(
+    file: str = typer.Option("", help="Active file path"),
+    language: str = typer.Option("", help="Language (python, typescript, etc.)"),
+    selection: str = typer.Option("", help="Selected/highlighted text in the editor"),
+):
+    """Push current Trae editor context to the MCP server."""
+    from bananalyzer.trae_mcp_server import push_context
+
+    push_context(file_path=file, language=language, selection=selection)
+
+
+@app.command(name="mcp-workspace")
+def mcp_workspace(
+    path: str = typer.Option(".", help="Path to project root"),
+):
+    """Set the workspace root for codebase search."""
+    from pathlib import Path
+    from bananalyzer.trae_mcp_server import push_workspace
+
+    root = str(Path(path).resolve())
+    push_workspace(root)
+
+
+@app.command(name="mcp-search")
+def mcp_search(
+    query: str = typer.Option(..., help="Search query"),
+    max_results: int = typer.Option(20, help="Max results"),
+):
+    """Search the codebase via the MCP server."""
+    from bananalyzer.trae_mcp_server import search_codebase
+
+    results = search_codebase(query, max_results)
+    if not results:
+        rprint("[yellow]No results found. Is the workspace root set? Try: bananalyzer mcp-workspace[/]")
+        return
+    for r in results:
+        rprint(f"[cyan]{r['file']}:{r['line']}[/] [dim]{r['snippet']}[/]")

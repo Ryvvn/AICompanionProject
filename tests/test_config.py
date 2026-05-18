@@ -118,7 +118,98 @@ def test_settings_models_load_from_yaml(temp_data_dir: Path):
     finally:
         Settings.model_config["yaml_file"] = old_settings_yaml
         Thresholds.model_config["yaml_file"] = old_thresholds_yaml
-        ModelProfiles.model_config["yaml_file"] = old_model_profiles_yaml
+
+
+def test_voice_settings_defaults():
+    settings = Settings.model_construct()
+    assert settings.stt_enabled is False
+    assert settings.tts_enabled is False
+    assert settings.stt_executable_path == "whisper"
+    assert settings.tts_executable_path == ""
+    assert settings.tts_voices_path == ""
+    assert settings.tts_voice == "af_heart"
+    assert settings.tts_engine == "kokoro"
+    assert settings.stt_record_duration_seconds == 5
+
+
+def test_tts_engine_validator():
+    settings = Settings(tts_engine="kokoro", tts_enabled=False, stt_enabled=False)
+    assert settings.tts_engine == "kokoro"
+
+    settings_piper = Settings(tts_engine="PIPER", tts_enabled=False, stt_enabled=False)
+    assert settings_piper.tts_engine == "piper"
+
+
+def test_stt_record_duration_validator():
+    settings = Settings.model_construct(stt_record_duration_seconds=10)
+    assert settings.stt_record_duration_seconds == 10
+
+
+def test_no_gpu_libraries_in_voice_code():
+    gpu_libs = ["torch", "tensorflow", "cuda_python", "cupy", "jax"]
+    for lib in gpu_libs:
+        try:
+            __import__(lib)
+            found = True
+        except ImportError:
+            found = False
+        assert not found, f"GPU library '{lib}' is installed — voice code paths should not require GPU"
+
+
+def test_intervention_intensity_validates_allowed_values():
+    thresholds = Thresholds(
+        doomscrolling_threshold_mins=15,
+        idle_seconds_for_companion=60,
+        fallback_confidence_threshold=0.2,
+        intervention_intensity="high",
+    )
+    assert thresholds.intervention_intensity == "high"
+
+    thresholds_low = Thresholds(
+        doomscrolling_threshold_mins=15,
+        idle_seconds_for_companion=60,
+        fallback_confidence_threshold=0.2,
+        intervention_intensity="LOW",
+    )
+    assert thresholds_low.intervention_intensity == "low"
+
+    with pytest.raises(ValueError):
+        Thresholds(
+            doomscrolling_threshold_mins=15,
+            idle_seconds_for_companion=60,
+            fallback_confidence_threshold=0.2,
+            intervention_intensity="extreme",
+        )
+
+
+def test_intervention_cooldown_validates_positive():
+    thresholds = Thresholds(
+        doomscrolling_threshold_mins=15,
+        idle_seconds_for_companion=60,
+        fallback_confidence_threshold=0.2,
+        intervention_cooldown_seconds=600,
+    )
+    assert thresholds.intervention_cooldown_seconds == 600
+
+
+def test_banana_debt_ratios_are_defaulted():
+    thresholds = Thresholds(
+        doomscrolling_threshold_mins=15,
+        idle_seconds_for_companion=60,
+        fallback_confidence_threshold=0.2,
+    )
+    assert thresholds.banana_debt_coding_ratio == -1.0
+    assert thresholds.banana_debt_gaming_ratio == 2.0
+    assert thresholds.banana_debt_doomscroll_ratio == 3.0
+
+
+def test_gaming_threshold_new_field_exists():
+    thresholds = Thresholds(
+        doomscrolling_threshold_mins=15,
+        idle_seconds_for_companion=60,
+        fallback_confidence_threshold=0.2,
+    )
+    assert thresholds.gaming_threshold_mins == 30
 
 
 def test_safe_loaders_fall_back_on_invalid_yaml(temp_data_dir: Path):

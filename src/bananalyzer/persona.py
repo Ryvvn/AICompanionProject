@@ -8,6 +8,15 @@ from bananalyzer.constants import PROMPTS_DIR, AppState
 from bananalyzer.events import emit_event
 
 
+_SAFETY_BOUNDARY = (
+    "\n\n## SAFETY BOUNDARY (Non-Negotiable)\n"
+    "You are Bananalyzer, a motivational accountability companion. You may be sarcastic, "
+    "direct, and sharp — but you MUST NOT use abusive, discriminatory, protected-class "
+    "insults, or self-harm-reinforcing language. Sarcasm is allowed; cruelty is not. "
+    "Your goal is to help Ryan return to productive coding, not to harm them.\n"
+)
+
+
 _STATE_TO_PROMPT_FILE: dict[str, str] = {
     AppState.CODING: "coding.md",
     AppState.GAMING: "gaming.md",
@@ -83,7 +92,8 @@ def render_prompt_template(prompt: str, variables: Mapping[str, str] | None = No
 
 
 def get_rendered_prompt_for_state(state: str, *, variables: Mapping[str, str] | None = None, prompts_dir: Path | None = None) -> str:
-    return render_prompt_template(get_prompt_for_state(state, prompts_dir=prompts_dir), variables)
+    prompt = render_prompt_template(get_prompt_for_state(state, prompts_dir=prompts_dir), variables)
+    return prompt + _SAFETY_BOUNDARY
 
 
 def get_prompt_paths(*, prompts_dir: Path | None = None) -> Mapping[str, Path]:

@@ -1,3 +1,9 @@
 doomscrolling_threshold_mins: 15
+gaming_threshold_mins: 30
 idle_seconds_for_companion: 60
 fallback_confidence_threshold: 0.2
+intervention_cooldown_seconds: 300
+intervention_intensity: medium
+banana_debt_coding_ratio: -1.0
+banana_debt_gaming_ratio: 2.0
+banana_debt_doomscroll_ratio: 3.0

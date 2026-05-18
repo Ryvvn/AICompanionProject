@@ -1,4 +1,4 @@
-from .base import IntegrationAdapter, HealthCheckResult
+from .base import IntegrationAdapter, HealthCheckResult, AdapterResult
 from .ollama import OllamaAdapter
 from .screenpipe import ScreenpipeAdapter
 from .mcp import MCPAdapter
@@ -8,6 +8,7 @@ from .tts import TTSAdapter
 __all__ = [
     "IntegrationAdapter",
     "HealthCheckResult",
+    "AdapterResult",
     "OllamaAdapter",
     "ScreenpipeAdapter",
     "MCPAdapter",

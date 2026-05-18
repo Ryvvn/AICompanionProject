@@ -1,11 +1,9 @@
-import pytest
 
 from bananalyzer.privacy import (
     PERSISTENCE_ALLOWED_CATEGORIES,
     is_category_allowed,
     is_content_safe_for_persistence,
     check_before_persistence,
-    _LARGE_TEXT_KEYS,
     DEFAULT_MAX_PERSISTED_STRING_LENGTH,
 )
 

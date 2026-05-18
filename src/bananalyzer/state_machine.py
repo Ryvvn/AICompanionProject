@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 from typing import Literal
 from pydantic import BaseModel, field_validator, model_validator
 
@@ -126,6 +125,37 @@ def set_state(new_state: str, *, reason: str | None = None, confidence: float | 
             "timestamp": timestamp,
         },
     )
+
+
+def evaluate_doomscroll_from_signals(confidence_threshold: float = 0.5) -> tuple[State, str, float] | None:
+    from bananalyzer.accountability.signals import DistractionSignals
+
+    try:
+        signals = DistractionSignals()
+        result = signals.classify_doomscroll()
+    except Exception:
+        return None
+
+    if result.is_doomscroll and result.confidence >= confidence_threshold:
+        return (
+            "doomscrolling",
+            f"doomscroll_signals:{','.join(result.reasons)}",
+            result.confidence,
+        )
+    elif result.confidence > 0 and result.confidence < confidence_threshold:
+        emit_event(
+            event_type="state.detected",
+            component="state_machine",
+            severity="info",
+            message="Low-confidence doomscroll signal detected",
+            details={
+                "state": "doomscrolling",
+                "confidence": result.confidence,
+                "reasons": result.reasons,
+                "degraded_mode": result.degraded_mode,
+            },
+        )
+    return None
 
 
 def evaluate_activity_signal(activity_category: str) -> tuple[State, str, float] | None:

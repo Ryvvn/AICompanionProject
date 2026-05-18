@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Tuple, Type
 
 import yaml
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -29,6 +29,18 @@ class Settings(BaseSettings):
     memory_update_interval_seconds: int = 300
     sync_enabled: bool = False
     mcp_endpoint_url: str = "http://127.0.0.1:8000/v1/context"
+    mcp_endpoints: dict[str, str] = Field(
+        default_factory=lambda: {
+            "trae.exe": "http://127.0.0.1:8001/v1/context",
+            "code.exe": "http://127.0.0.1:8000/v1/context",
+            "cursor.exe": "http://127.0.0.1:8002/v1/context",
+            "devenv.exe": "http://127.0.0.1:8003/v1/context",
+            "default": "http://127.0.0.1:8000/v1/context",
+        }
+    )
+    screenpipe_enabled: bool = False
+    screenpipe_endpoint_url: str = "http://127.0.0.1:3030"
+    screenpipe_poll_interval_seconds: int = 10
     code_context_max_lines: int = 200
     code_context_max_chars: int = 8000
     foreground_app_category_map: dict[str, str] = Field(
@@ -53,6 +65,18 @@ class Settings(BaseSettings):
             "fallback": "fallback.md",
         }
     )
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_request_timeout_seconds: int = 120
+    tts_enabled: bool = False
+    tts_engine: str = "kokoro"
+    tts_voice_model_path: str = ""
+    tts_voices_path: str = ""
+    tts_voice: str = "af_heart"
+    tts_executable_path: str = ""
+    stt_enabled: bool = False
+    stt_executable_path: str = "whisper"
+    stt_model_path: str = ""
+    stt_record_duration_seconds: int = 5
 
     model_config = SettingsConfigDict(yaml_file=CONFIG_DIR / "settings.yaml")
 
@@ -65,13 +89,44 @@ class Settings(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> Tuple[PydanticBaseSettingsSource, ...]:
-        return (YamlConfigSettingsSource(settings_cls),)
+        return (init_settings, YamlConfigSettingsSource(settings_cls),)
 
     @field_validator("foreground_poll_interval_seconds")
     @classmethod
     def _validate_foreground_poll_interval_seconds(cls, v: int) -> int:
         if v < 1:
             raise ValueError("foreground_poll_interval_seconds must be >= 1")
+        return v
+
+    @field_validator("tts_engine")
+    @classmethod
+    def _validate_tts_engine(cls, v: str) -> str:
+        allowed = {"piper", "kokoro"}
+        if v.lower() not in allowed:
+            raise ValueError(f"tts_engine must be one of: {allowed}")
+        return v.lower()
+
+    @field_validator("stt_record_duration_seconds")
+    @classmethod
+    def _validate_stt_record_duration_seconds(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("stt_record_duration_seconds must be >= 1")
+        if v > 120:
+            raise ValueError("stt_record_duration_seconds must be <= 120")
+        return v
+
+    @field_validator("ollama_base_url")
+    @classmethod
+    def _validate_ollama_base_url(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("ollama_base_url must not be empty")
+        return v.strip()
+
+    @field_validator("ollama_request_timeout_seconds")
+    @classmethod
+    def _validate_ollama_request_timeout_seconds(cls, v: int) -> int:
+        if v < 1:
+            raise ValueError("ollama_request_timeout_seconds must be >= 1")
         return v
 
     @field_validator("foreground_app_category_map")
@@ -83,6 +138,29 @@ class Settings(BaseSettings):
                 continue
             normalized[str(key).strip().lower()] = str(value).strip()
         return normalized
+
+    @model_validator(mode="after")
+    def _validate_voice_config(self):
+        warnings = []
+        if self.tts_enabled:
+            if self.tts_engine == "kokoro":
+                if not self.tts_voice_model_path or not Path(self.tts_voice_model_path).exists():
+                    warnings.append(f"TTS (kokoro) is enabled but model file not found at: '{self.tts_voice_model_path}'")
+                if not self.tts_voices_path or not Path(self.tts_voices_path).exists():
+                    warnings.append(f"TTS (kokoro) is enabled but voices file not found at: '{self.tts_voices_path}'")
+            elif self.tts_engine == "piper":
+                if not self.tts_executable_path or not Path(self.tts_executable_path).exists():
+                    warnings.append(f"TTS (piper) is enabled but executable not found at: '{self.tts_executable_path}'")
+                if not self.tts_voice_model_path or not Path(self.tts_voice_model_path).exists():
+                    warnings.append(f"TTS (piper) is enabled but voice model not found at: '{self.tts_voice_model_path}'")
+        if self.stt_enabled:
+            if not self.stt_executable_path or not Path(self.stt_executable_path).exists():
+                warnings.append(f"STT is enabled but executable not found at: '{self.stt_executable_path}'")
+            if not self.stt_model_path or not Path(self.stt_model_path).exists():
+                warnings.append(f"STT is enabled but model not found at: '{self.stt_model_path}'")
+        for warning in warnings:
+            logger.warning(warning)
+        return self
     
 
 class ModelProfile(BaseModel):
@@ -107,14 +185,20 @@ class ModelProfiles(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> Tuple[PydanticBaseSettingsSource, ...]:
-        return (YamlConfigSettingsSource(settings_cls),)
+        return (init_settings, YamlConfigSettingsSource(settings_cls),)
 
 
 class Thresholds(BaseSettings):
     """Thresholds configuration"""
     doomscrolling_threshold_mins: int = 15
+    gaming_threshold_mins: int = 30
     idle_seconds_for_companion: int = 60
     fallback_confidence_threshold: float = 0.2
+    intervention_cooldown_seconds: int = 300
+    intervention_intensity: str = "medium"
+    banana_debt_coding_ratio: float = -1.0
+    banana_debt_gaming_ratio: float = 2.0
+    banana_debt_doomscroll_ratio: float = 3.0
 
     model_config = SettingsConfigDict(yaml_file=CONFIG_DIR / "thresholds.yaml")
 
@@ -127,9 +211,9 @@ class Thresholds(BaseSettings):
         dotenv_settings: PydanticBaseSettingsSource,
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> Tuple[PydanticBaseSettingsSource, ...]:
-        return (YamlConfigSettingsSource(settings_cls),)
+        return (init_settings, YamlConfigSettingsSource(settings_cls),)
 
-    @field_validator("doomscrolling_threshold_mins", "idle_seconds_for_companion")
+    @field_validator("doomscrolling_threshold_mins", "gaming_threshold_mins", "idle_seconds_for_companion", "intervention_cooldown_seconds")
     @classmethod
     def _validate_positive_ints(cls, v: int) -> int:
         if v < 1:
@@ -142,6 +226,14 @@ class Thresholds(BaseSettings):
         if v < 0 or v > 1:
             raise ValueError("fallback_confidence_threshold must be between 0 and 1")
         return v
+
+    @field_validator("intervention_intensity")
+    @classmethod
+    def _validate_intensity(cls, v: str) -> str:
+        allowed = {"low", "medium", "high"}
+        if v.lower() not in allowed:
+            raise ValueError(f"intervention_intensity must be one of: {allowed}")
+        return v.lower()
 
 
 def _create_yaml_if_not_exists(path: Path, default_content: dict):
@@ -174,6 +266,17 @@ def scaffold_data_foundation():
         {
             "app_name": "Bananalyzer",
             "foreground_poll_interval_seconds": 5,
+            "mcp_endpoint_url": "http://127.0.0.1:8000/v1/context",
+            "mcp_endpoints": {
+                "trae.exe": "http://127.0.0.1:8001/v1/context",
+                "code.exe": "http://127.0.0.1:8000/v1/context",
+                "cursor.exe": "http://127.0.0.1:8002/v1/context",
+                "devenv.exe": "http://127.0.0.1:8003/v1/context",
+                "default": "http://127.0.0.1:8000/v1/context",
+            },
+            "screenpipe_enabled": False,
+            "screenpipe_endpoint_url": "http://127.0.0.1:3030",
+            "screenpipe_poll_interval_seconds": 10,
             "foreground_app_category_map": {
                 "Code.exe": "coding",
                 "Cursor.exe": "coding",
@@ -188,6 +291,18 @@ def scaffold_data_foundation():
                 "companion": "companion.md",
                 "fallback": "fallback.md",
             },
+            "ollama_base_url": "http://localhost:11434",
+            "ollama_request_timeout_seconds": 120,
+            "tts_enabled": False,
+            "tts_engine": "kokoro",
+            "tts_voice_model_path": "",
+            "tts_voices_path": "",
+            "tts_voice": "af_heart",
+            "tts_executable_path": "",
+            "stt_enabled": False,
+            "stt_executable_path": "whisper",
+            "stt_model_path": "",
+            "stt_record_duration_seconds": 5,
         },
     )
     _create_yaml_if_not_exists(
@@ -207,8 +322,14 @@ def scaffold_data_foundation():
         CONFIG_DIR / "thresholds.yaml",
         {
             "doomscrolling_threshold_mins": 15,
+            "gaming_threshold_mins": 30,
             "idle_seconds_for_companion": 60,
             "fallback_confidence_threshold": 0.2,
+            "intervention_cooldown_seconds": 300,
+            "intervention_intensity": "medium",
+            "banana_debt_coding_ratio": -1.0,
+            "banana_debt_gaming_ratio": 2.0,
+            "banana_debt_doomscroll_ratio": 3.0,
         },
     )
     
